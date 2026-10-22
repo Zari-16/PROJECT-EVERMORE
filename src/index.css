@@ -722,6 +722,115 @@ html,body,#root { height:100%; margin:0; padding:0; font-family: Inter, system-u
   gap: 8px;
 }
 
+.companion-page {
+  max-width: 1000px;
+  min-height: calc(100vh - 64px);
+  margin: 24px auto;
+  padding: 0 16px;
+}
+
+.companion-panel {
+  display: grid;
+  gap: 24px;
+}
+
+.companion-header h1,
+.companion-header p,
+.task-form-section h2,
+.shared-tasks-list h2,
+.shared-task h3 {
+  margin: 0;
+}
+
+.companion-header p,
+.companion-eyebrow,
+.shared-task-meta {
+  color: var(--muted);
+}
+
+.task-form-section,
+.shared-tasks-list {
+  display: grid;
+  gap: 14px;
+  padding: 18px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+}
+
+.task-form {
+  display: grid;
+  grid-template-columns: minmax(100px, 160px) minmax(0, 1fr);
+  align-items: start;
+  gap: 10px 14px;
+}
+
+.task-form textarea {
+  min-height: 80px;
+  resize: vertical;
+}
+
+.task-form-actions {
+  grid-column: 2;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.shared-task {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 0;
+  border-top: 1px solid var(--border);
+}
+
+.shared-task-main {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.shared-task-main > p {
+  white-space: pre-wrap;
+}
+
+.shared-task-completed h3 {
+  text-decoration: line-through;
+  text-decoration-thickness: 1px;
+}
+
+.shared-task-tags,
+.shared-task-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.shared-task-tags {
+  margin-bottom: 6px;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.task-priority {
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.task-priority-high {
+  color: #9c3342;
+}
+
+.task-priority-low {
+  color: #43745a;
+}
+
+.shared-task-meta {
+  font-size: 0.9rem;
+}
+
 @keyframes memory-letter-open {
   from { opacity: 0; transform: translateY(-8px) scaleY(0.96); }
   to { opacity: 1; transform: translateY(0) scaleY(1); }
@@ -812,6 +921,24 @@ html,body,#root { height:100%; margin:0; padding:0; font-family: Inter, system-u
   .memory-entry-meta {
     gap: 6px;
     font-size: 0.75rem;
+  }
+
+  .companion-page {
+    min-height: calc(100vh - 56px);
+    margin: 12px auto;
+    padding: 0 8px;
+  }
+
+  .task-form {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .task-form-actions {
+    grid-column: 1;
+  }
+
+  .shared-task {
+    flex-direction: column;
   }
 
   .memory-form {

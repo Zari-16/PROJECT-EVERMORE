@@ -13,6 +13,7 @@ import Whiteboard from './pages/Whiteboard';
 import Questions from './pages/Questions';
 import Calendar from './pages/Calendar';
 import Memories from './pages/Memories';
+import CompanionRoom from './pages/CompanionRoom';
 
 export default function App() {
   const { session } = useAuth();
@@ -38,6 +39,7 @@ export default function App() {
             <Link to="/questions">Questions</Link>
             <Link to="/calendar">Calendar</Link>
             <Link to="/memories">Memory Garden</Link>
+            <Link to="/room">Companion Room</Link>
             <button type="button" onClick={handleSignOut}>Sign out</button>
           </>
         ) : (
@@ -60,6 +62,7 @@ export default function App() {
           <Route path="/questions" element={<Questions />} />
           <Route path="/calendar" element={<Calendar />} />
           <Route path="/memories" element={<Memories />} />
+          <Route path="/room" element={<CompanionRoom />} />
         </Route>
       </Routes>
     </div>
