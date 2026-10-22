@@ -6,6 +6,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import { useAuth } from './components/AuthProvider';
 import { supabase } from './lib/supabase';
 import Home from './pages/Home';
+import Profile from './pages/Profile';
 
 export default function App() {
   const { session } = useAuth();
@@ -23,7 +24,10 @@ export default function App() {
       <nav style={{padding:12, display:'flex', gap:12}}>
         <Link to="/">Home</Link>
         {session ? (
-          <button type="button" onClick={handleSignOut}>Sign out</button>
+          <>
+            <Link to="/profile">Profile</Link>
+            <button type="button" onClick={handleSignOut}>Sign out</button>
+          </>
         ) : (
           <>
             <Link to="/login">Login</Link>
@@ -37,6 +41,7 @@ export default function App() {
         <Route path="/register" element={<Register />} />
         <Route element={<ProtectedRoute />}>
           <Route path="/" element={<Home />} />
+          <Route path="/profile" element={<Profile />} />
         </Route>
       </Routes>
     </div>
