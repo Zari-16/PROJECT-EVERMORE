@@ -310,11 +310,19 @@ begin
 
   insert into public.daily_questions (space_id, question_date, question_id)
   values (v_space_id, v_today, v_question_id)
-  on conflict (space_id, question_date) do nothing;
+  on conflict (space_id, question_date) do update
+    set question_id = excluded.question_id
+    where not exists (
+      select 1 from public.question_answers as answer
+       where answer.space_id = excluded.space_id
+         and answer.question_date = excluded.question_date
+    );
 
   return query
     select daily.question_date, bank.id, bank.prompt, bank.category,
-           bank.progression_year, bank.depth, bank.journey_day
+           coalesce(bank.progression_year, ((v_journey_day - 1) / 365) + 1),
+           coalesce(bank.depth, 'light'),
+           coalesce(bank.journey_day, v_journey_day)
       from public.daily_questions as daily
       join public.question_bank as bank on bank.id = daily.question_id
      where daily.space_id = v_space_id and daily.question_date = v_today;
