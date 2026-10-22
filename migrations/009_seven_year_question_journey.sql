@@ -310,7 +310,7 @@ begin
 
   insert into public.daily_questions (space_id, question_date, question_id)
   values (v_space_id, v_today, v_question_id)
-  on conflict (space_id, question_date) do update
+  on conflict on constraint daily_questions_pkey do update
     set question_id = excluded.question_id
     where not exists (
       select 1 from public.question_answers as answer
