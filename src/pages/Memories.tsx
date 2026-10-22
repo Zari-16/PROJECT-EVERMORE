@@ -39,6 +39,7 @@ export default function Memories() {
   const [memories, setMemories] = useState<Memory[]>([]);
   const [form, setForm] = useState<MemoryForm>(EMPTY_FORM);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [openedMemoryId, setOpenedMemoryId] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('All');
   const [loading, setLoading] = useState(true);
@@ -136,6 +137,7 @@ export default function Memories() {
 
   function startEdit(memory: Memory) {
     setEditingId(memory.id);
+    setOpenedMemoryId(memory.id);
     setForm({
       title: memory.title,
       body: memory.body,
@@ -150,6 +152,7 @@ export default function Memories() {
   function cancelEdit() {
     setEditingId(null);
     setForm(EMPTY_FORM);
+    setOpenedMemoryId(null);
   }
 
   async function handleSave(event: FormEvent<HTMLFormElement>) {
@@ -204,6 +207,7 @@ export default function Memories() {
       setNotice('Memory deleted.');
       setMemories((current) => current.filter((item) => item.id !== memory.id));
       if (editingId === memory.id) cancelEdit();
+      else if (openedMemoryId === memory.id) setOpenedMemoryId(null);
     }
   }
 
@@ -275,19 +279,35 @@ export default function Memories() {
           {visibleMemories.length === 0 ? <p>No memories match this view yet.</p> : (
             <div className="memory-timeline">
               {visibleMemories.map((memory) => (
-                <article className="memory-entry" key={memory.id}>
-                  <div className="memory-entry-meta">
-                    <span>{memory.category}</span>
-                    <span>{memory.visibility === 'shared' ? 'Shared' : 'Private'}</span>
-                    {memory.memory_date && <time dateTime={memory.memory_date}>{new Date(`${memory.memory_date}T12:00:00`).toLocaleDateString()}</time>}
-                  </div>
-                  <h3>{memory.title}</h3>
-                  <p>{memory.body}</p>
-                  {memory.created_by === session?.user.id && (
-                    <footer>
-                      <button type="button" onClick={() => startEdit(memory)}>Edit</button>
-                      <button type="button" onClick={() => void handleDelete(memory)}>Delete</button>
-                    </footer>
+                <article className={`memory-envelope${openedMemoryId === memory.id ? ' memory-envelope-open' : ''}`} key={memory.id}>
+                  <button
+                    className="memory-envelope-face"
+                    type="button"
+                    aria-expanded={openedMemoryId === memory.id}
+                    aria-controls={`memory-letter-${memory.id}`}
+                    onClick={() => setOpenedMemoryId((current) => current === memory.id ? null : memory.id)}
+                  >
+                    <span className="memory-seal" aria-hidden="true" />
+                    <span className="memory-envelope-heading">
+                      <span className="memory-entry-meta">
+                        <span>{memory.category}</span>
+                        <span>{memory.visibility === 'shared' ? 'Shared' : 'Private'}</span>
+                        {memory.memory_date && <time dateTime={memory.memory_date}>{new Date(`${memory.memory_date}T12:00:00`).toLocaleDateString()}</time>}
+                      </span>
+                      <strong>{memory.title}</strong>
+                    </span>
+                    <span className="memory-envelope-action">{openedMemoryId === memory.id ? 'Close' : 'Open'}</span>
+                  </button>
+                  {openedMemoryId === memory.id && (
+                    <div className="memory-letter" id={`memory-letter-${memory.id}`}>
+                      <p>{memory.body}</p>
+                      {memory.created_by === session?.user.id && (
+                        <footer>
+                          <button type="button" onClick={() => startEdit(memory)}>Edit</button>
+                          <button type="button" onClick={() => void handleDelete(memory)}>Delete</button>
+                        </footer>
+                      )}
+                    </div>
                   )}
                 </article>
               ))}

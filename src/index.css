@@ -579,8 +579,7 @@ html,body,#root { height:100%; margin:0; padding:0; font-family: Inter, system-u
 .memories-header h1,
 .memories-header p,
 .memory-form-section h2,
-.memories-library h2,
-.memory-entry h3 {
+.memories-library h2 {
   margin: 0;
 }
 
@@ -634,12 +633,68 @@ html,body,#root { height:100%; margin:0; padding:0; font-family: Inter, system-u
   gap: 12px;
 }
 
-.memory-entry {
-  padding: 16px;
+.memory-envelope {
+  overflow: hidden;
   border: 1px solid var(--border);
   border-radius: 8px;
   background: var(--bg);
+  box-shadow: 0 4px 12px rgba(20, 18, 28, 0.05);
+}
+
+.memory-envelope-face {
+  display: grid;
+  width: 100%;
+  grid-template-columns: 38px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border: 0;
+  border-radius: 0;
+  background: linear-gradient(110deg, var(--surface), color-mix(in srgb, var(--surface) 68%, var(--bg)));
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+}
+
+.memory-envelope-face:hover {
+  background: color-mix(in srgb, var(--surface) 76%, var(--primary));
+}
+
+.memory-seal {
+  position: relative;
+  width: 34px;
+  height: 34px;
+  border: 1px solid color-mix(in srgb, var(--accent) 65%, var(--text));
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: inset 0 0 0 3px color-mix(in srgb, var(--accent) 78%, white);
+}
+
+.memory-seal::after {
+  position: absolute;
+  top: 11px;
+  left: 11px;
+  width: 10px;
+  height: 10px;
+  border: 1px solid white;
+  content: '';
+  transform: rotate(45deg);
+}
+
+.memory-envelope-heading {
+  min-width: 0;
+}
+
+.memory-envelope-heading strong {
+  display: block;
   overflow-wrap: anywhere;
+  font-size: 1.1rem;
+}
+
+.memory-envelope-action {
+  color: var(--accent);
+  font-size: 0.9rem;
+  font-weight: 600;
 }
 
 .memory-entry-meta {
@@ -649,14 +704,33 @@ html,body,#root { height:100%; margin:0; padding:0; font-family: Inter, system-u
   font-size: 0.875rem;
 }
 
-.memory-entry > p {
-  white-space: pre-wrap;
+.memory-letter {
+  padding: 4px 18px 18px;
+  border-top: 1px solid var(--border);
+  animation: memory-letter-open 280ms ease-out both;
+  transform-origin: top center;
 }
 
-.memory-entry footer {
+.memory-letter p {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.memory-letter footer {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+}
+
+@keyframes memory-letter-open {
+  from { opacity: 0; transform: translateY(-8px) scaleY(0.96); }
+  to { opacity: 1; transform: translateY(0) scaleY(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .memory-letter {
+    animation: none;
+  }
 }
 
 @media (max-width: 600px) {
@@ -717,6 +791,27 @@ html,body,#root { height:100%; margin:0; padding:0; font-family: Inter, system-u
     min-height: calc(100vh - 56px);
     margin: 12px auto;
     padding: 0 8px;
+  }
+
+  .memory-envelope-face {
+    grid-template-columns: 32px minmax(0, 1fr) auto;
+    gap: 9px;
+    padding: 12px;
+  }
+
+  .memory-seal {
+    width: 30px;
+    height: 30px;
+  }
+
+  .memory-seal::after {
+    top: 9px;
+    left: 9px;
+  }
+
+  .memory-entry-meta {
+    gap: 6px;
+    font-size: 0.75rem;
   }
 
   .memory-form {
