@@ -16,6 +16,7 @@ import Memories from './pages/Memories';
 import CompanionRoom from './pages/CompanionRoom';
 import FantasyAtmosphere from './components/FantasyAtmosphere';
 import Games from './pages/Games';
+import HeartAndHollow from './pages/HeartAndHollow';
 
 const Sudoku = lazy(() => import('./pages/Sudoku'));
 
@@ -81,6 +82,7 @@ export default function App() {
             <Route path="/room" element={<CompanionRoom />} />
             <Route path="/games" element={<Games />} />
             <Route path="/games/sudoku" element={<Suspense fallback={<main role="status">Opening Sudoku...</main>}><Sudoku /></Suspense>} />
+            <Route path="/games/heart-and-hollow" element={<HeartAndHollow />} />
           </Route>
         </Routes>
       </div>

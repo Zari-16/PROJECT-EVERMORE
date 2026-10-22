@@ -1554,6 +1554,11 @@ label {
   font-size: 1.5rem;
 }
 
+.game-card-mark {
+  color: var(--accent);
+  font-family: Georgia, serif;
+}
+
 .game-library-copy h2,
 .game-library-copy p {
   margin: 0;
@@ -1562,6 +1567,218 @@ label {
 .game-library-copy > p:last-child {
   margin-top: 4px;
   color: var(--muted);
+}
+
+.card-game-page {
+  width: min(1040px, calc(100% - 32px));
+  margin: 24px auto 48px;
+}
+
+.card-game-panel {
+  display: grid;
+  gap: 20px;
+}
+
+.card-game-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding: 20px;
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--accent);
+  border-radius: 8px;
+  background: var(--surface);
+}
+
+.card-game-header h1,
+.card-game-header p {
+  margin: 0;
+}
+
+.game-eyebrow {
+  color: var(--accent);
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.card-game-status {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+}
+
+.card-game-status div {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+}
+
+.card-game-status div span {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.card-game-status div strong {
+  font-size: 1.25rem;
+}
+
+.card-game-status > p {
+  width: 100%;
+  margin: 0;
+  color: var(--accent);
+  text-align: center;
+  font-weight: 700;
+  text-transform: capitalize;
+}
+
+.card-table {
+  display: flex;
+  min-height: 220px;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(20px, 8vw, 100px);
+  padding: 24px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--surface) 78%, var(--secondary));
+}
+
+.card-table > div {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+}
+
+.card-table-label {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.playing-card {
+  display: grid;
+  width: 86px;
+  min-height: 122px;
+  place-items: center;
+  padding: 9px;
+  border: 2px solid rgba(255, 255, 255, 0.9);
+  border-radius: 10px;
+  background: var(--surface);
+  box-shadow: 0 4px 12px rgba(20, 16, 26, 0.17);
+  color: #241d2c;
+  text-align: center;
+  text-transform: capitalize;
+  transition: transform 150ms ease, box-shadow 150ms ease;
+}
+
+button.playing-card:not(:disabled):hover {
+  transform: translateY(-7px);
+  box-shadow: 0 10px 20px rgba(20, 16, 26, 0.22);
+}
+
+.playing-card-rose { background: #efb7c4; }
+.playing-card-moss { background: #b9d2a3; }
+.playing-card-moon { background: #b9d3ec; }
+.playing-card-ember { background: #e6a273; }
+.playing-card-wild { background: linear-gradient(135deg, #efb7c4 0 25%, #b9d2a3 25% 50%, #b9d3ec 50% 75%, #e6a273 75%); }
+
+.draw-pile {
+  display: grid;
+  width: 86px;
+  min-height: 122px;
+  align-content: center;
+  gap: 8px;
+  border: 2px solid var(--accent);
+  border-radius: 10px;
+  background: var(--text);
+  color: var(--bg);
+  font-weight: 700;
+}
+
+.draw-pile small {
+  color: var(--secondary);
+  font-size: 0.72rem;
+}
+
+.wild-color-picker {
+  display: flex;
+  width: fit-content;
+  align-items: center;
+  gap: 10px;
+}
+
+.wild-color-picker select {
+  min-width: 125px;
+}
+
+.player-hand {
+  display: grid;
+  gap: 12px;
+}
+
+.player-hand h2,
+.card-game-history h2 {
+  margin: 0;
+}
+
+.player-hand-cards {
+  display: flex;
+  min-height: 145px;
+  align-items: center;
+  gap: 10px;
+  overflow-x: auto;
+  padding: 10px 4px 16px;
+}
+
+.player-hand-cards .playing-card {
+  flex: 0 0 78px;
+  min-height: 112px;
+}
+
+.card-game-history {
+  display: grid;
+  gap: 12px;
+  padding: 18px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+}
+
+.card-game-history ul {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding-left: 20px;
+}
+
+.card-game-history li {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.card-game-history li span:last-child,
+.card-game-feedback {
+  color: var(--muted);
+}
+
+.game-ready {
+  display: grid;
+  justify-items: start;
+  gap: 12px;
+  padding: 24px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
 }
 
 .game-launch {
@@ -2280,6 +2497,23 @@ label {
     grid-template-columns: 42px minmax(0, 1fr);
     gap: 12px;
     padding: 14px;
+  }
+
+  .card-game-page {
+    width: calc(100% - 16px);
+    margin: 12px auto 28px;
+  }
+
+  .card-table {
+    min-height: 190px;
+    gap: 24px;
+    padding: 14px;
+  }
+
+  .playing-card,
+  .draw-pile {
+    width: 72px;
+    min-height: 104px;
   }
 
   .game-library-mark {
