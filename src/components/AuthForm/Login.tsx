@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { supabase } from '../../lib/supabase';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -61,28 +61,43 @@ export default function Login() {
   const needsConfirmation = error?.toLowerCase().includes('email not confirmed');
 
   return (
-    <main style={{maxWidth:520, margin:'40px auto'}}>
-      <section className="card">
-        <h2>Enter the Garden</h2>
-        <p className="muted">Sign in with your email and password.</p>
-        <form onSubmit={handleLogin}>
-          <label>Email
-            <input aria-label="email" type="email" autoComplete="email" required value={email} onChange={(e)=>setEmail(e.target.value)} />
-          </label>
-          <label>Password
-            <input aria-label="password" type="password" autoComplete="current-password" required value={password} onChange={(e)=>setPassword(e.target.value)} />
-          </label>
-          <div style={{marginTop:12}}>
-            <button disabled={loading} type="submit">{loading ? 'Signing in...' : 'Sign in'}</button>
-          </div>
-          {error && <div role="alert" style={{color:'var(--accent)'}}>{error}</div>}
-        </form>
-        {needsConfirmation && (
-          <button type="button" disabled={loading || !email} onClick={handleResendConfirmation}>
-            {loading ? 'Sending...' : 'Resend confirmation email'}
-          </button>
-        )}
-        {notice && <div role="status">{notice}</div>}
+    <main className="auth-page auth-page-login">
+      <section className="auth-layout">
+        <div className="auth-intro">
+          <span className="auth-sigil" aria-hidden="true" />
+          <p className="auth-eyebrow">Your private sanctuary</p>
+          <h1>Come back to our little world.</h1>
+          <p>Pick up where the two of you left off, wherever you are.</p>
+          <div className="auth-ornament" aria-hidden="true"><span /></div>
+        </div>
+
+        <section className="auth-form-panel">
+          <header className="auth-form-heading">
+            <p className="auth-eyebrow">Welcome back</p>
+            <h2>Enter the garden</h2>
+            <p>Sign in with your email and password.</p>
+          </header>
+          <form className="auth-form" onSubmit={handleLogin}>
+            <label htmlFor="login-email">Email address</label>
+            <input id="login-email" type="email" autoComplete="email" required value={email} onChange={(event) => setEmail(event.target.value)} />
+
+            <label htmlFor="login-password">Password</label>
+            <input id="login-password" type="password" autoComplete="current-password" required value={password} onChange={(event) => setPassword(event.target.value)} />
+
+            {error && <p role="alert" className="auth-message auth-message-error">{error}</p>}
+            {notice && <p role="status" className="auth-message auth-message-success">{notice}</p>}
+
+            <button className="auth-submit" disabled={loading} type="submit">
+              {loading ? 'Opening the gate...' : 'Sign in'}
+            </button>
+          </form>
+          {needsConfirmation && (
+            <button className="auth-secondary-action" type="button" disabled={loading || !email} onClick={handleResendConfirmation}>
+              {loading ? 'Sending...' : 'Resend confirmation email'}
+            </button>
+          )}
+          <p className="auth-switch">New to Evermore? <Link to="/register">Create an account</Link></p>
+        </section>
       </section>
     </main>
   );

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { supabase } from '../../lib/supabase';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 export default function Register() {
   const [email, setEmail] = useState('');
@@ -31,22 +31,39 @@ export default function Register() {
   }
 
   return (
-    <main style={{maxWidth:520, margin:'40px auto'}}>
-      <section className="card">
-        <h2>Create an Account</h2>
-        <form onSubmit={handleRegister}>
-          <label>Email
-            <input aria-label="email" type="email" autoComplete="email" required value={email} onChange={(e)=>setEmail(e.target.value)} />
-          </label>
-          <label>Password
-            <input aria-label="password" type="password" autoComplete="new-password" minLength={8} required value={password} onChange={(e)=>setPassword(e.target.value)} />
-          </label>
-          <div style={{marginTop:12}}>
-            <button disabled={loading} type="submit">{loading ? 'Creating...' : 'Create account'}</button>
-          </div>
-        </form>
-        {info && <div role="status" style={{color:'var(--primary)'}}>{info}</div>}
-        {error && <div role="alert" style={{color:'var(--accent)'}}>{error}</div>}
+    <main className="auth-page auth-page-register">
+      <section className="auth-layout">
+        <div className="auth-intro">
+          <span className="auth-sigil" aria-hidden="true" />
+          <p className="auth-eyebrow">A world for two</p>
+          <h1>Begin your story together.</h1>
+          <p>Save the small moments, the faraway visits, and all the things still ahead.</p>
+          <div className="auth-ornament" aria-hidden="true"><span /></div>
+        </div>
+
+        <section className="auth-form-panel">
+          <header className="auth-form-heading">
+            <p className="auth-eyebrow">A key to your realm</p>
+            <h2>Create an account</h2>
+            <p>Start with an email address and a password.</p>
+          </header>
+          <form className="auth-form" onSubmit={handleRegister}>
+            <label htmlFor="register-email">Email address</label>
+            <input id="register-email" type="email" autoComplete="email" required value={email} onChange={(event) => setEmail(event.target.value)} />
+
+            <label htmlFor="register-password">Password</label>
+            <input id="register-password" type="password" autoComplete="new-password" minLength={8} required value={password} onChange={(event) => setPassword(event.target.value)} />
+            <small className="auth-field-hint">Use at least 8 characters.</small>
+
+            {info && <p role="status" className="auth-message auth-message-success">{info}</p>}
+            {error && <p role="alert" className="auth-message auth-message-error">{error}</p>}
+
+            <button className="auth-submit" disabled={loading} type="submit">
+              {loading ? 'Preparing your invitation...' : 'Create account'}
+            </button>
+          </form>
+          <p className="auth-switch">Already have an account? <Link to="/login">Sign in</Link></p>
+        </section>
       </section>
     </main>
   );
