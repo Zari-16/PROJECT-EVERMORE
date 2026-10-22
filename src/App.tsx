@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { lazy, Suspense, useState } from 'react';
 import { Routes, Route, Link, NavLink } from 'react-router-dom';
 import Login from './components/AuthForm/Login';
 import Register from './components/AuthForm/Register';
@@ -15,6 +15,9 @@ import Calendar from './pages/Calendar';
 import Memories from './pages/Memories';
 import CompanionRoom from './pages/CompanionRoom';
 import FantasyAtmosphere from './components/FantasyAtmosphere';
+import Games from './pages/Games';
+
+const Sudoku = lazy(() => import('./pages/Sudoku'));
 
 export default function App() {
   const { session } = useAuth();
@@ -50,6 +53,7 @@ export default function App() {
               <NavLink to="/calendar" className={({ isActive }) => `site-nav-link${isActive ? ' is-active' : ''}`}>Calendar</NavLink>
               <NavLink to="/memories" className={({ isActive }) => `site-nav-link${isActive ? ' is-active' : ''}`}>Memory Garden</NavLink>
               <NavLink to="/room" className={({ isActive }) => `site-nav-link${isActive ? ' is-active' : ''}`}>Companion Room</NavLink>
+              <NavLink to="/games" className={({ isActive }) => `site-nav-link${isActive ? ' is-active' : ''}`}>Games</NavLink>
             </>
           ) : (
             <>
@@ -75,6 +79,8 @@ export default function App() {
             <Route path="/calendar" element={<Calendar />} />
             <Route path="/memories" element={<Memories />} />
             <Route path="/room" element={<CompanionRoom />} />
+            <Route path="/games" element={<Games />} />
+            <Route path="/games/sudoku" element={<Suspense fallback={<main role="status">Opening Sudoku...</main>}><Sudoku /></Suspense>} />
           </Route>
         </Routes>
       </div>

@@ -431,6 +431,8 @@ export default function Home() {
           <Link to="/calendar" onClick={() => setQuickPanelOpen(false)}>Shared Calendar</Link>
           <Link to="/memories" onClick={() => setQuickPanelOpen(false)}>Memory Garden</Link>
           <Link to="/room" onClick={() => setQuickPanelOpen(false)}>Companion Room</Link>
+          <Link to="/games" onClick={() => setQuickPanelOpen(false)}>Games Library</Link>
+          <Link to="/games" onClick={() => setQuickPanelOpen(false)}>Games Library</Link>
         </nav>
         <section className="home-tools-tasks">
           <div className="home-section-heading">
