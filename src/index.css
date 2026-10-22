@@ -233,6 +233,17 @@ html,body,#root { height:100%; margin:0; padding:0; font-family: Inter, system-u
   width: 112px;
 }
 
+.whiteboard-tool-toggle {
+  display: inline-flex;
+  gap: 4px;
+}
+
+.whiteboard-tool-toggle button[aria-pressed="true"] {
+  border-color: var(--accent);
+  background: var(--magic);
+  color: var(--text);
+}
+
 .whiteboard-canvas {
   display: block;
   width: 100%;

@@ -4,7 +4,7 @@ import { useAuth } from '../components/AuthProvider';
 import { supabase } from '../lib/supabase';
 
 type Point = [number, number];
-type StrokeOperation = { type: 'stroke'; points: Point[]; color: string; width: number };
+type StrokeOperation = { type: 'stroke' | 'erase'; points: Point[]; color: string; width: number };
 type ClearOperation = { type: 'clear' };
 type CanvasOperation = StrokeOperation | ClearOperation;
 type StoredOperation = {
@@ -15,7 +15,7 @@ type StoredOperation = {
   created_at: string;
 };
 type PendingOperation = { id: string; op: CanvasOperation };
-type ActiveStroke = { points: Point[]; color: string; width: number };
+type ActiveStroke = StrokeOperation;
 
 const MAX_LOADED_OPERATIONS = 1000;
 
@@ -23,7 +23,7 @@ function readOperation(value: unknown): CanvasOperation | null {
   if (!value || typeof value !== 'object') return null;
   const operation = value as Record<string, unknown>;
   if (operation.type === 'clear') return { type: 'clear' };
-  if (operation.type !== 'stroke' || !Array.isArray(operation.points)) return null;
+  if (!['stroke', 'erase'].includes(String(operation.type)) || !Array.isArray(operation.points)) return null;
   if (typeof operation.color !== 'string' || !/^#[0-9a-f]{6}$/i.test(operation.color)) return null;
   if (typeof operation.width !== 'number' || operation.width < 0.5 || operation.width > 64) return null;
 
@@ -34,7 +34,7 @@ function readOperation(value: unknown): CanvasOperation | null {
   ).map((point) => [Math.max(0, Math.min(1, point[0])), Math.max(0, Math.min(1, point[1]))] as Point);
 
   if (points.length < 2) return null;
-  return { type: 'stroke', points, color: operation.color, width: operation.width };
+  return { type: operation.type as StrokeOperation['type'], points, color: operation.color, width: operation.width };
 }
 
 function orderOperations(items: StoredOperation[]) {
@@ -49,6 +49,7 @@ function drawStroke(context: CanvasRenderingContext2D, stroke: StrokeOperation, 
   context.lineWidth = stroke.width;
   context.lineCap = 'round';
   context.lineJoin = 'round';
+  context.globalCompositeOperation = stroke.type === 'erase' ? 'destination-out' : 'source-over';
   context.globalAlpha = pending ? 0.55 : 1;
   if (pending) context.setLineDash([5, 4]);
   context.beginPath();
@@ -69,6 +70,7 @@ export default function Whiteboard() {
   const [activeStroke, setActiveStroke] = useState<ActiveStroke | null>(null);
   const [color, setColor] = useState('#773f91');
   const [brushSize, setBrushSize] = useState(5);
+  const [tool, setTool] = useState<'pen' | 'eraser'>('pen');
   const [connection, setConnection] = useState<'connecting' | 'connected' | 'disconnected'>('connecting');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -186,7 +188,7 @@ export default function Whiteboard() {
       else visible.push(item);
     }
     for (const item of visible) {
-      if (item.op.type === 'stroke') drawStroke(context, item.op, bounds.width, bounds.height);
+      if (item.op.type !== 'clear') drawStroke(context, item.op, bounds.width, bounds.height);
     }
     for (const item of pending) {
       if (item.op.type === 'clear') {
@@ -194,7 +196,7 @@ export default function Whiteboard() {
         context.fillRect(0, 0, bounds.width, bounds.height);
       } else drawStroke(context, item.op, bounds.width, bounds.height, true);
     }
-    if (activeStroke) drawStroke(context, { type: 'stroke', ...activeStroke }, bounds.width, bounds.height);
+    if (activeStroke) drawStroke(context, activeStroke, bounds.width, bounds.height);
   }, [operations, pending, activeStroke]);
 
   useEffect(() => {
@@ -271,7 +273,7 @@ export default function Whiteboard() {
     event.currentTarget.setPointerCapture(event.pointerId);
     activePointer.current = event.pointerId;
     const point = getPoint(event);
-    setActiveStroke({ points: [point, point], color, width: brushSize });
+    setActiveStroke({ type: tool === 'eraser' ? 'erase' : 'stroke', points: [point, point], color, width: brushSize });
   }
 
   function handlePointerMove(event: PointerEvent<HTMLCanvasElement>) {
@@ -285,7 +287,7 @@ export default function Whiteboard() {
     activePointer.current = null;
     const stroke = activeStroke;
     setActiveStroke(null);
-    void persistOperation({ type: 'stroke', ...stroke });
+    void persistOperation(stroke);
   }
 
   async function handleClear() {
@@ -323,7 +325,11 @@ export default function Whiteboard() {
             </span>
           </div>
           <div className="whiteboard-tools">
-            <label>Color <input type="color" value={color} onChange={(event) => setColor(event.target.value)} /></label>
+            <div className="whiteboard-tool-toggle" role="group" aria-label="Drawing tool">
+              <button type="button" aria-pressed={tool === 'pen'} onClick={() => setTool('pen')}>Pen</button>
+              <button type="button" aria-pressed={tool === 'eraser'} onClick={() => setTool('eraser')}>Eraser</button>
+            </div>
+            <label>Color <input type="color" disabled={tool === 'eraser'} value={color} onChange={(event) => setColor(event.target.value)} /></label>
             <label>Brush <input aria-label="Brush size" type="range" min="1" max="32" value={brushSize} onChange={(event) => setBrushSize(Number(event.target.value))} /></label>
             <button type="button" disabled={saving || pending.length > 0 || connection !== 'connected'} onClick={() => void handleClear()}>Clear</button>
             <button type="button" onClick={handleExport}>Export PNG</button>
