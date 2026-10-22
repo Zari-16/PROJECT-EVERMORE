@@ -146,15 +146,12 @@ export default function Questions() {
     setSaving(true);
     setError(null);
     setNotice(null);
-    const { error: saveError } = await supabase
-      .from('question_answers')
-      .upsert({
-        space_id: spaceId,
-        question_date: question.question_date,
-        author: session.user.id,
-        answer,
-        visibility,
-      }, { onConflict: 'space_id,question_date,author' });
+    const { error: saveError } = await supabase.rpc('save_question_answer', {
+      p_space_id: spaceId,
+      p_question_date: question.question_date,
+      p_answer: answer,
+      p_visibility: visibility,
+    });
 
     if (saveError) setError(saveError.message);
     else {
