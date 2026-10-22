@@ -11,6 +11,7 @@ import Chat from './pages/Chat';
 import Profile from './pages/Profile';
 import Whiteboard from './pages/Whiteboard';
 import Questions from './pages/Questions';
+import Calendar from './pages/Calendar';
 
 export default function App() {
   const { session } = useAuth();
@@ -34,6 +35,7 @@ export default function App() {
             <Link to="/chat">Chat</Link>
             <Link to="/whiteboard">Whiteboard</Link>
             <Link to="/questions">Questions</Link>
+            <Link to="/calendar">Calendar</Link>
             <button type="button" onClick={handleSignOut}>Sign out</button>
           </>
         ) : (
@@ -54,6 +56,7 @@ export default function App() {
           <Route path="/chat" element={<Chat />} />
           <Route path="/whiteboard" element={<Whiteboard />} />
           <Route path="/questions" element={<Questions />} />
+          <Route path="/calendar" element={<Calendar />} />
         </Route>
       </Routes>
     </div>
