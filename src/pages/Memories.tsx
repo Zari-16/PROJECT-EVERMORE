@@ -1,0 +1,303 @@
+import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react';
+import { useAuth } from '../components/AuthProvider';
+import { supabase } from '../lib/supabase';
+
+type Memory = {
+  id: string;
+  space_id: string | null;
+  created_by: string;
+  title: string;
+  body: string;
+  memory_date: string | null;
+  category: string;
+  visibility: 'private' | 'shared';
+  created_at: string;
+  updated_at: string;
+};
+
+type SpaceRow = { space_id: string };
+type MemoryForm = {
+  title: string;
+  body: string;
+  memory_date: string;
+  category: string;
+  visibility: 'private' | 'shared';
+};
+
+const EMPTY_FORM: MemoryForm = {
+  title: '',
+  body: '',
+  memory_date: '',
+  category: 'Moment',
+  visibility: 'private',
+};
+const MEMORY_COLUMNS = 'id,space_id,created_by,title,body,memory_date,category,visibility,created_at,updated_at';
+
+export default function Memories() {
+  const { session } = useAuth();
+  const [spaceId, setSpaceId] = useState<string | null>(null);
+  const [memories, setMemories] = useState<Memory[]>([]);
+  const [form, setForm] = useState<MemoryForm>(EMPTY_FORM);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [search, setSearch] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('All');
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
+
+  const loadMemories = useCallback(async () => {
+    if (!supabase || !session) return;
+
+    let query = supabase.from('memories').select(MEMORY_COLUMNS);
+    if (spaceId) query = query.or(`created_by.eq.${session.user.id},space_id.eq.${spaceId}`);
+    else query = query.eq('created_by', session.user.id);
+
+    const { data, error: loadError } = await query
+      .order('memory_date', { ascending: false, nullsFirst: false })
+      .order('created_at', { ascending: false });
+
+    if (loadError) setError(loadError.message);
+    else {
+      setMemories((data ?? []) as Memory[]);
+      setError(null);
+    }
+    setLoading(false);
+  }, [session, spaceId]);
+
+  useEffect(() => {
+    if (!supabase || !session) {
+      setError('Sign in to open the Memory Garden.');
+      setLoading(false);
+      return;
+    }
+
+    const client = supabase;
+    let active = true;
+    async function loadSpace() {
+      const { data, error: spaceError } = await client.rpc('get_my_space');
+      if (!active) return;
+      if (spaceError) setError(spaceError.message);
+      else {
+        const rows = (Array.isArray(data) ? data : []) as SpaceRow[];
+        setSpaceId(rows[0]?.space_id ?? null);
+      }
+    }
+
+    void loadSpace();
+    return () => { active = false; };
+  }, [session]);
+
+  useEffect(() => {
+    if (!supabase || !session) return;
+
+    let active = true;
+    const client = supabase;
+    let channel = client
+      .channel(`memories:${session.user.id}:${spaceId ?? 'personal'}`)
+      .on('postgres_changes', {
+        event: '*', schema: 'public', table: 'memories',
+        filter: `created_by=eq.${session.user.id}`,
+      }, () => { void loadMemories(); });
+
+    if (spaceId) {
+      channel.on('postgres_changes', {
+        event: '*', schema: 'public', table: 'memories',
+        filter: `space_id=eq.${spaceId}`,
+      }, () => { void loadMemories(); });
+    }
+    channel = channel.subscribe();
+
+    async function refresh() {
+      await loadMemories();
+      if (active) setLoading(false);
+    }
+    void refresh();
+
+    return () => {
+      active = false;
+      void client.removeChannel(channel);
+    };
+  }, [session, spaceId, loadMemories]);
+
+  const categories = useMemo(() => ['All', ...new Set(memories.map((memory) => memory.category))], [memories]);
+  const visibleMemories = useMemo(() => {
+    const term = search.trim().toLocaleLowerCase();
+    return memories.filter((memory) => {
+      const matchesCategory = categoryFilter === 'All' || memory.category === categoryFilter;
+      const matchesSearch = !term || `${memory.title} ${memory.body}`.toLocaleLowerCase().includes(term);
+      return matchesCategory && matchesSearch;
+    });
+  }, [memories, search, categoryFilter]);
+
+  function updateForm<K extends keyof MemoryForm>(key: K, value: MemoryForm[K]) {
+    setForm((current) => ({ ...current, [key]: value }));
+  }
+
+  function startEdit(memory: Memory) {
+    setEditingId(memory.id);
+    setForm({
+      title: memory.title,
+      body: memory.body,
+      memory_date: memory.memory_date ?? '',
+      category: memory.category,
+      visibility: memory.visibility,
+    });
+    setError(null);
+    setNotice(null);
+  }
+
+  function cancelEdit() {
+    setEditingId(null);
+    setForm(EMPTY_FORM);
+  }
+
+  async function handleSave(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!supabase || !session) return;
+
+    const title = form.title.trim();
+    const body = form.body.trim();
+    if (!title || !body) return;
+    if (form.visibility === 'shared' && !spaceId) {
+      setError('Pair your account before sharing a memory.');
+      return;
+    }
+
+    const values = {
+      title,
+      body,
+      memory_date: form.memory_date || null,
+      category: form.category.trim() || 'Moment',
+      visibility: form.visibility,
+      space_id: form.visibility === 'shared' ? spaceId : null,
+    };
+
+    setSaving(true);
+    setError(null);
+    setNotice(null);
+    const result = editingId
+      ? await supabase.from('memories').update(values).eq('id', editingId).eq('created_by', session.user.id)
+      : await supabase.from('memories').insert({ ...values, created_by: session.user.id });
+
+    if (result.error) setError(result.error.message);
+    else {
+      setNotice(editingId ? 'Memory updated.' : 'Memory saved.');
+      setEditingId(null);
+      setForm(EMPTY_FORM);
+      await loadMemories();
+    }
+    setSaving(false);
+  }
+
+  async function handleDelete(memory: Memory) {
+    if (!supabase || !session) return;
+    if (!window.confirm(`Delete “${memory.title}”?`)) return;
+
+    const { error: deleteError } = await supabase
+      .from('memories')
+      .delete()
+      .eq('id', memory.id)
+      .eq('created_by', session.user.id);
+    if (deleteError) setError(deleteError.message);
+    else {
+      setNotice('Memory deleted.');
+      setMemories((current) => current.filter((item) => item.id !== memory.id));
+      if (editingId === memory.id) cancelEdit();
+    }
+  }
+
+  if (loading) return <main role="status">Opening your Memory Garden...</main>;
+
+  return (
+    <main className="memories-page">
+      <section className="memories-panel">
+        <header className="memories-header">
+          <div>
+            <p className="memories-eyebrow">A place for moments worth keeping</p>
+            <h1>Memory Garden</h1>
+          </div>
+        </header>
+
+        <section className="memory-form-section">
+          <h2>{editingId ? 'Edit memory' : 'Save a memory'}</h2>
+          <form className="memory-form" onSubmit={handleSave}>
+            <label htmlFor="memory-title">Title</label>
+            <input id="memory-title" required maxLength={160} value={form.title} onChange={(event) => updateForm('title', event.target.value)} />
+
+            <label htmlFor="memory-body">Your memory</label>
+            <textarea id="memory-body" required maxLength={10000} value={form.body} onChange={(event) => updateForm('body', event.target.value)} />
+
+            <label htmlFor="memory-date">Date</label>
+            <input id="memory-date" type="date" value={form.memory_date} onChange={(event) => updateForm('memory_date', event.target.value)} />
+
+            <label htmlFor="memory-category">Category</label>
+            <select id="memory-category" value={form.category} onChange={(event) => updateForm('category', event.target.value)}>
+              <option>Moment</option>
+              <option>Visit</option>
+              <option>Milestone</option>
+              <option>Letter</option>
+              <option>Question</option>
+              <option>Celebration</option>
+              <option>Everyday</option>
+              <option>Other</option>
+            </select>
+
+            <label htmlFor="memory-visibility">Visibility</label>
+            <select id="memory-visibility" value={form.visibility} onChange={(event) => updateForm('visibility', event.target.value as MemoryForm['visibility'])}>
+              <option value="private">Private to me</option>
+              {spaceId && <option value="shared">Shared with partner</option>}
+            </select>
+
+            <div className="memory-form-actions">
+              <button type="submit" disabled={saving || !form.title.trim() || !form.body.trim()}>
+                {saving ? 'Saving...' : editingId ? 'Save changes' : 'Save memory'}
+              </button>
+              {editingId && <button type="button" disabled={saving} onClick={cancelEdit}>Cancel</button>}
+            </div>
+          </form>
+        </section>
+
+        <section className="memories-library">
+          <header className="memories-library-header">
+            <h2>Our collection</h2>
+            <label>
+              <span className="visually-hidden">Search memories</span>
+              <input type="search" placeholder="Search memories" value={search} onChange={(event) => setSearch(event.target.value)} />
+            </label>
+            <label>
+              <span className="visually-hidden">Filter by category</span>
+              <select value={categoryFilter} onChange={(event) => setCategoryFilter(event.target.value)}>
+                {categories.map((category) => <option key={category}>{category}</option>)}
+              </select>
+            </label>
+          </header>
+          {visibleMemories.length === 0 ? <p>No memories match this view yet.</p> : (
+            <div className="memory-timeline">
+              {visibleMemories.map((memory) => (
+                <article className="memory-entry" key={memory.id}>
+                  <div className="memory-entry-meta">
+                    <span>{memory.category}</span>
+                    <span>{memory.visibility === 'shared' ? 'Shared' : 'Private'}</span>
+                    {memory.memory_date && <time dateTime={memory.memory_date}>{new Date(`${memory.memory_date}T12:00:00`).toLocaleDateString()}</time>}
+                  </div>
+                  <h3>{memory.title}</h3>
+                  <p>{memory.body}</p>
+                  {memory.created_by === session?.user.id && (
+                    <footer>
+                      <button type="button" onClick={() => startEdit(memory)}>Edit</button>
+                      <button type="button" onClick={() => void handleDelete(memory)}>Delete</button>
+                    </footer>
+                  )}
+                </article>
+              ))}
+            </div>
+          )}
+        </section>
+
+        {error && <p role="alert">{error}</p>}
+        {notice && <p role="status">{notice}</p>}
+      </section>
+    </main>
+  );
+}

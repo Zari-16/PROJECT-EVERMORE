@@ -564,6 +564,101 @@ html,body,#root { height:100%; margin:0; padding:0; font-family: Inter, system-u
   gap: 8px;
 }
 
+.memories-page {
+  max-width: 1000px;
+  min-height: calc(100vh - 64px);
+  margin: 24px auto;
+  padding: 0 16px;
+}
+
+.memories-panel {
+  display: grid;
+  gap: 24px;
+}
+
+.memories-header h1,
+.memories-header p,
+.memory-form-section h2,
+.memories-library h2,
+.memory-entry h3 {
+  margin: 0;
+}
+
+.memories-eyebrow,
+.memory-entry-meta {
+  color: var(--muted);
+}
+
+.memory-form-section,
+.memories-library {
+  display: grid;
+  gap: 14px;
+  padding: 18px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+}
+
+.memory-form {
+  display: grid;
+  grid-template-columns: minmax(100px, 160px) minmax(0, 1fr);
+  align-items: start;
+  gap: 10px 14px;
+}
+
+.memory-form textarea {
+  min-height: 140px;
+  resize: vertical;
+}
+
+.memory-form-actions {
+  grid-column: 2;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.memories-library-header {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.memories-library-header h2 {
+  margin-right: auto;
+}
+
+.memory-timeline {
+  display: grid;
+  gap: 12px;
+}
+
+.memory-entry {
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  overflow-wrap: anywhere;
+}
+
+.memory-entry-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  font-size: 0.875rem;
+}
+
+.memory-entry > p {
+  white-space: pre-wrap;
+}
+
+.memory-entry footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
 @media (max-width: 600px) {
   .chat-page {
     min-height: calc(100vh - 56px);
@@ -616,6 +711,20 @@ html,body,#root { height:100%; margin:0; padding:0; font-family: Inter, system-u
 
   .calendar-event {
     flex-direction: column;
+  }
+
+  .memories-page {
+    min-height: calc(100vh - 56px);
+    margin: 12px auto;
+    padding: 0 8px;
+  }
+
+  .memory-form {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .memory-form-actions {
+    grid-column: 1;
   }
 
   .calendar-day {
