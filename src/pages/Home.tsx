@@ -301,7 +301,7 @@ export default function Home() {
           </label>
           <button
             ref={quickPanelTriggerRef}
-            className="home-rail-trigger"
+            className="home-quick-access-trigger"
             type="button"
             aria-haspopup="dialog"
             aria-expanded={quickPanelOpen}

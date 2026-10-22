@@ -1676,18 +1676,12 @@ label {
   background: var(--surface);
 }
 
-.home-rail-trigger {
-  position: fixed;
-  z-index: 80;
-  top: 50%;
-  right: 0;
-  padding: 12px 9px;
-  border-radius: 8px 0 0 8px;
+.home-quick-access-trigger {
+  align-self: flex-end;
+  flex: 0 0 auto;
   background: var(--accent);
-  color: #fff;
+  color: var(--bg);
   font-weight: 700;
-  writing-mode: vertical-rl;
-  transform: translateY(-50%);
 }
 
 .home-tools-scrim {
@@ -1939,12 +1933,8 @@ label {
     margin: 12px auto 28px;
   }
 
-  .home-rail-trigger {
-    top: auto;
-    right: 0;
-    bottom: 18px;
-    writing-mode: horizontal-tb;
-    transform: none;
+  .home-quick-access-trigger {
+    align-self: flex-start;
   }
 
   .home-welcome {
