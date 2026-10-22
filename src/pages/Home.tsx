@@ -101,6 +101,9 @@ export default function Home() {
   const [loadingDashboard, setLoadingDashboard] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [quickPanelOpen, setQuickPanelOpen] = useState(false);
+  const quickPanelRef = useRef<HTMLElement>(null);
+  const quickPanelTriggerRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     if (!supabase || !session) {
@@ -232,6 +235,43 @@ export default function Home() {
     return () => observer.disconnect();
   }, [boardOps]);
 
+  useEffect(() => {
+    if (!quickPanelOpen) return;
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    quickPanelRef.current?.querySelector<HTMLElement>('button, a, input, select')?.focus();
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === 'Escape') {
+        setQuickPanelOpen(false);
+        quickPanelTriggerRef.current?.focus();
+        return;
+      }
+      if (event.key !== 'Tab' || !quickPanelRef.current) return;
+
+      const focusable = [...quickPanelRef.current.querySelectorAll<HTMLElement>(
+        'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled])',
+      )];
+      if (focusable.length === 0) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [quickPanelOpen]);
+
   if (loadingAccount) return <main role="status">Opening your space...</main>;
 
   const greetingName = displayName || session?.user.email?.split('@')[0] || 'there';
@@ -259,6 +299,16 @@ export default function Home() {
               <option value="dark">Dark</option>
             </select>
           </label>
+          <button
+            ref={quickPanelTriggerRef}
+            className="home-rail-trigger"
+            type="button"
+            aria-haspopup="dialog"
+            aria-expanded={quickPanelOpen}
+            onClick={() => setQuickPanelOpen(true)}
+          >
+            Tasks & pages
+          </button>
         </div>
       </header>
 
@@ -342,6 +392,66 @@ export default function Home() {
           {error && <p className="home-error" role="alert">{error}</p>}
         </>
       )}
+
+      <button
+        className={`home-tools-scrim${quickPanelOpen ? ' is-open' : ''}`}
+        type="button"
+        aria-label="Close tasks and pages panel"
+        tabIndex={quickPanelOpen ? 0 : -1}
+        onClick={() => {
+          setQuickPanelOpen(false);
+          quickPanelTriggerRef.current?.focus();
+        }}
+      />
+      <aside
+        ref={quickPanelRef}
+        className={`home-tools-drawer${quickPanelOpen ? ' is-open' : ''}`}
+        role="dialog"
+        aria-modal={quickPanelOpen}
+        aria-label="Tasks and all pages"
+        aria-hidden={!quickPanelOpen}
+      >
+        <header className="home-tools-header">
+          <div>
+            <p className="home-eyebrow">Your shared world</p>
+            <h2>Quick access</h2>
+          </div>
+          <button type="button" aria-label="Close panel" onClick={() => {
+            setQuickPanelOpen(false);
+            quickPanelTriggerRef.current?.focus();
+          }}>Close</button>
+        </header>
+        <nav className="home-tools-links" aria-label="All pages">
+          <Link to="/" onClick={() => setQuickPanelOpen(false)}>Home</Link>
+          <Link to="/profile" onClick={() => setQuickPanelOpen(false)}>Profile & settings</Link>
+          <Link to="/pairing" onClick={() => setQuickPanelOpen(false)}>Private space</Link>
+          <Link to="/chat" onClick={() => setQuickPanelOpen(false)}>Our Chat</Link>
+          <Link to="/whiteboard" onClick={() => setQuickPanelOpen(false)}>Shared Whiteboard</Link>
+          <Link to="/questions" onClick={() => setQuickPanelOpen(false)}>Our Little Questions</Link>
+          <Link to="/calendar" onClick={() => setQuickPanelOpen(false)}>Shared Calendar</Link>
+          <Link to="/memories" onClick={() => setQuickPanelOpen(false)}>Memory Garden</Link>
+          <Link to="/room" onClick={() => setQuickPanelOpen(false)}>Companion Room</Link>
+        </nav>
+        <section className="home-tools-tasks">
+          <div className="home-section-heading">
+            <h2>Active tasks</h2>
+            <Link to="/room" onClick={() => setQuickPanelOpen(false)}>All tasks</Link>
+          </div>
+          {tasks.length === 0 ? <p className="home-empty">Nothing to do together yet.</p> : (
+            <ul className="home-task-list">
+              {tasks.map((task) => (
+                <li key={task.id}>
+                  <span className={`home-task-priority home-task-priority-${task.priority}`} aria-hidden="true" />
+                  <div>
+                    <strong>{task.title}</strong>
+                    <span>{task.due_at ? `Due ${new Date(task.due_at).toLocaleString()}` : task.status.replace('_', ' ')}</span>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      </aside>
     </main>
   );
 }

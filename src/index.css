@@ -1002,6 +1002,118 @@ html,body,#root { height:100%; margin:0; padding:0; font-family: Inter, system-u
   background: var(--surface);
 }
 
+.home-rail-trigger {
+  position: fixed;
+  z-index: 80;
+  top: 50%;
+  right: 0;
+  padding: 12px 9px;
+  border-radius: 8px 0 0 8px;
+  background: var(--accent);
+  color: #fff;
+  font-weight: 700;
+  writing-mode: vertical-rl;
+  transform: translateY(-50%);
+}
+
+.home-tools-scrim {
+  position: fixed;
+  z-index: 90;
+  inset: 0;
+  visibility: hidden;
+  border: 0;
+  border-radius: 0;
+  background: rgba(15, 12, 22, 0.38);
+  opacity: 0;
+  transition: opacity 220ms ease, visibility 220ms ease;
+}
+
+.home-tools-scrim.is-open {
+  visibility: visible;
+  opacity: 1;
+}
+
+.home-tools-drawer {
+  position: fixed;
+  z-index: 100;
+  top: 0;
+  right: 0;
+  display: flex;
+  width: min(390px, 92vw);
+  height: 100dvh;
+  flex-direction: column;
+  gap: 18px;
+  overflow-y: auto;
+  padding: 24px 20px;
+  border-left: 1px solid var(--border);
+  background: var(--bg);
+  box-shadow: -12px 0 36px rgba(15, 12, 22, 0.16);
+  transform: translateX(105%);
+  visibility: hidden;
+  transition: transform 240ms ease, visibility 240ms ease;
+}
+
+.home-tools-drawer.is-open {
+  transform: translateX(0);
+  visibility: visible;
+}
+
+.home-tools-header {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--border);
+}
+
+.home-tools-header h2,
+.home-tools-header p {
+  margin: 0;
+}
+
+.home-tools-header button {
+  flex: 0 0 auto;
+}
+
+.home-tools-links {
+  display: grid;
+  gap: 4px;
+}
+
+.home-tools-links a {
+  padding: 10px 12px;
+  border-radius: 6px;
+  color: var(--text);
+  text-decoration: none;
+}
+
+.home-tools-links a:hover,
+.home-tools-links a:focus-visible {
+  background: var(--surface);
+  color: var(--accent);
+}
+
+.home-tools-tasks {
+  display: grid;
+  gap: 12px;
+  margin-top: auto;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+.home-tools-tasks .home-section-heading {
+  align-items: center;
+  margin: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-tools-scrim,
+  .home-tools-drawer {
+    transition: none;
+  }
+}
+
 @keyframes memory-letter-open {
   from { opacity: 0; transform: translateY(-8px) scaleY(0.96); }
   to { opacity: 1; transform: translateY(0) scaleY(1); }
@@ -1115,6 +1227,14 @@ html,body,#root { height:100%; margin:0; padding:0; font-family: Inter, system-u
   .home-dashboard {
     width: calc(100% - 16px);
     margin: 12px auto 28px;
+  }
+
+  .home-rail-trigger {
+    top: auto;
+    right: 0;
+    bottom: 18px;
+    writing-mode: horizontal-tb;
+    transform: none;
   }
 
   .home-welcome {
