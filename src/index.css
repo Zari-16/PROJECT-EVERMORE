@@ -748,6 +748,113 @@ html,body,#root { height:100%; margin:0; padding:0; font-family: Inter, system-u
   color: var(--muted);
 }
 
+.focus-session-section {
+  display: grid;
+  gap: 18px;
+  padding: 20px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: linear-gradient(120deg, var(--surface), color-mix(in srgb, var(--surface) 74%, var(--primary)));
+}
+
+.focus-session-header,
+.focus-active {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.focus-session-header h2,
+.focus-session-header p {
+  margin: 0;
+}
+
+.focus-session-sync {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.focus-active {
+  align-items: center;
+}
+
+.focus-timer-copy {
+  display: grid;
+  gap: 8px;
+  min-width: min(100%, 280px);
+}
+
+.focus-timer-copy > p,
+.focus-timer-copy > small {
+  margin: 0;
+  color: var(--muted);
+  text-transform: capitalize;
+}
+
+.focus-clock {
+  font-size: clamp(2.5rem, 8vw, 4.5rem);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.focus-progress {
+  height: 8px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--border);
+}
+
+.focus-progress span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--accent);
+  transition: width 300ms linear;
+}
+
+.focus-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.focus-start-form {
+  display: grid;
+  grid-template-columns: minmax(100px, 140px) minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px 12px;
+}
+
+.focus-start-form button {
+  grid-column: 1 / -1;
+  justify-self: start;
+}
+
+.focus-history {
+  border-top: 1px solid var(--border);
+  padding-top: 12px;
+}
+
+.focus-history ul {
+  display: grid;
+  gap: 8px;
+  padding-left: 20px;
+}
+
+.focus-history li {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.focus-history li span:last-child {
+  color: var(--muted);
+  font-size: 0.875rem;
+}
+
 .task-form-section,
 .shared-tasks-list {
   display: grid;
@@ -1221,6 +1328,19 @@ html,body,#root { height:100%; margin:0; padding:0; font-family: Inter, system-u
   }
 
   .shared-task {
+    flex-direction: column;
+  }
+
+  .focus-start-form {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .focus-start-form button {
+    grid-column: 1;
+  }
+
+  .focus-active {
+    align-items: stretch;
     flex-direction: column;
   }
 

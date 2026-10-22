@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, type FormEvent } from 'react';
+import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../components/AuthProvider';
 import { supabase } from '../lib/supabase';
@@ -32,6 +32,21 @@ type TaskForm = {
   status: TaskStatus;
   assigned_to: string;
 };
+type FocusType = 'focus' | 'short_break' | 'long_break';
+type FocusSession = {
+  session_id: string;
+  space_id: string;
+  title: string;
+  session_type: FocusType;
+  duration_seconds: number;
+  status: 'running' | 'paused' | 'completed' | 'cancelled';
+  started_at: string;
+  paused_at: string | null;
+  paused_seconds: number;
+  ended_at: string | null;
+  created_at: string;
+  server_now: string;
+};
 
 const EMPTY_FORM: TaskForm = {
   title: '',
@@ -48,16 +63,29 @@ function toLocalInput(value: string) {
   return new Date(date.getTime() - date.getTimezoneOffset() * 60_000).toISOString().slice(0, 16);
 }
 
+function formatClock(seconds: number) {
+  const safeSeconds = Math.max(0, Math.ceil(seconds));
+  return `${String(Math.floor(safeSeconds / 60)).padStart(2, '0')}:${String(safeSeconds % 60).padStart(2, '0')}`;
+}
+
 export default function CompanionRoom() {
   const { session } = useAuth();
   const [members, setMembers] = useState<Member[]>([]);
   const [tasks, setTasks] = useState<SharedTask[]>([]);
+  const [focusSessions, setFocusSessions] = useState<FocusSession[]>([]);
+  const [focusTitle, setFocusTitle] = useState('Focus together');
+  const [focusType, setFocusType] = useState<FocusType>('focus');
+  const [focusMinutes, setFocusMinutes] = useState(25);
+  const [focusLoading, setFocusLoading] = useState(true);
+  const [clockNow, setClockNow] = useState(Date.now());
+  const [serverClockOffset, setServerClockOffset] = useState(0);
   const [form, setForm] = useState<TaskForm>(EMPTY_FORM);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const completingSessionId = useRef<string | null>(null);
 
   const spaceId = members[0]?.space_id ?? null;
 
@@ -81,6 +109,22 @@ export default function CompanionRoom() {
       setError(null);
     }
     setLoading(false);
+  }, [spaceId]);
+
+  const loadFocusSessions = useCallback(async () => {
+    if (!supabase || !spaceId) {
+      setFocusSessions([]);
+      setFocusLoading(false);
+      return;
+    }
+    const { data, error: focusError } = await supabase.rpc('get_focus_room_state');
+    if (focusError) setError(focusError.message);
+    else {
+      const rows = (Array.isArray(data) ? data : []) as FocusSession[];
+      setFocusSessions(rows);
+      if (rows[0]?.server_now) setServerClockOffset(new Date(rows[0].server_now).getTime() - Date.now());
+    }
+    setFocusLoading(false);
   }, [spaceId]);
 
   useEffect(() => {
@@ -116,14 +160,86 @@ export default function CompanionRoom() {
         event: '*', schema: 'public', table: 'shared_tasks',
         filter: `space_id=eq.${spaceId}`,
       }, () => { void loadTasks(); })
+      .on('postgres_changes', {
+        event: '*', schema: 'public', table: 'focus_sessions',
+        filter: `space_id=eq.${spaceId}`,
+      }, () => { void loadFocusSessions(); })
       .subscribe();
 
     void loadTasks().then(() => { if (active) setLoading(false); });
+    void loadFocusSessions();
     return () => {
       active = false;
       void client.removeChannel(channel);
     };
-  }, [spaceId, loadTasks]);
+  }, [spaceId, loadTasks, loadFocusSessions]);
+
+  const activeFocusSession = focusSessions.find((item) => item.status === 'running' || item.status === 'paused') ?? null;
+
+  useEffect(() => {
+    if (!activeFocusSession || activeFocusSession.status !== 'running') return;
+    const intervalId = window.setInterval(() => setClockNow(Date.now()), 1000);
+    return () => window.clearInterval(intervalId);
+  }, [activeFocusSession?.session_id, activeFocusSession?.status]);
+
+  const focusNow = clockNow + serverClockOffset;
+  const focusElapsed = activeFocusSession
+    ? Math.max(0, (Date.parse(activeFocusSession.status === 'paused' && activeFocusSession.paused_at
+      ? activeFocusSession.paused_at
+      : activeFocusSession.server_now) - Date.parse(activeFocusSession.started_at)) / 1000 - activeFocusSession.paused_seconds)
+    : 0;
+  const focusRemaining = activeFocusSession
+    ? Math.max(0, activeFocusSession.duration_seconds - (activeFocusSession.status === 'running'
+      ? (focusNow - Date.parse(activeFocusSession.started_at)) / 1000 - activeFocusSession.paused_seconds
+      : focusElapsed))
+    : 0;
+
+  const finishFocusSession = useCallback(async (sessionId: string, cancel: boolean) => {
+    if (!supabase) return;
+    const { error: finishError } = await supabase.rpc('finish_focus_session', {
+      p_session_id: sessionId,
+      p_cancel: cancel,
+    });
+    if (finishError) setError(finishError.message);
+    else {
+      completingSessionId.current = null;
+      await loadFocusSessions();
+      setNotice(cancel ? 'Focus session ended.' : 'Focus session complete.');
+    }
+  }, [loadFocusSessions]);
+
+  useEffect(() => {
+    if (!activeFocusSession || activeFocusSession.status !== 'running' || focusRemaining > 0) return;
+    if (completingSessionId.current === activeFocusSession.session_id) return;
+    completingSessionId.current = activeFocusSession.session_id;
+    void finishFocusSession(activeFocusSession.session_id, false);
+  }, [activeFocusSession, focusRemaining, finishFocusSession]);
+
+  async function startFocusSession(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!supabase || !spaceId) return;
+    setError(null);
+    setNotice(null);
+    const { error: startError } = await supabase.rpc('start_focus_session', {
+      p_title: focusTitle.trim() || 'Focus together',
+      p_session_type: focusType,
+      p_duration_minutes: focusMinutes,
+    });
+    if (startError) setError(startError.message);
+    else {
+      completingSessionId.current = null;
+      setNotice('Shared focus session started.');
+      await loadFocusSessions();
+    }
+  }
+
+  async function toggleFocusPause() {
+    if (!supabase || !activeFocusSession) return;
+    const rpcName = activeFocusSession.status === 'running' ? 'pause_focus_session' : 'resume_focus_session';
+    const { error: toggleError } = await supabase.rpc(rpcName, { p_session_id: activeFocusSession.session_id });
+    if (toggleError) setError(toggleError.message);
+    else await loadFocusSessions();
+  }
 
   function updateForm<K extends keyof TaskForm>(key: K, value: TaskForm[K]) {
     setForm((current) => ({ ...current, [key]: value }));
@@ -227,6 +343,83 @@ export default function CompanionRoom() {
           <p>Pair your account to start a shared list. <Link to="/pairing">Go to Pairing</Link></p>
         ) : (
           <>
+            <section className="focus-session-section" aria-live="polite">
+              <header className="focus-session-header">
+                <div>
+                  <p className="companion-eyebrow">Shared focus</p>
+                  <h2>Settle in together</h2>
+                </div>
+                <span className="focus-session-sync">Synced across devices</span>
+              </header>
+
+              {focusLoading ? <p role="status">Checking shared timer...</p> : activeFocusSession ? (
+                <div className="focus-active">
+                  <div className="focus-timer-copy">
+                    <p>{activeFocusSession.session_type.replace('_', ' ')} · {activeFocusSession.title}</p>
+                    <strong className="focus-clock" aria-label={`${Math.floor(focusRemaining / 60)} minutes ${focusRemaining % 60} seconds remaining`}>
+                      {formatClock(focusRemaining)}
+                    </strong>
+                    <div className="focus-progress" role="progressbar" aria-label="Focus session progress" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(100 - focusRemaining / activeFocusSession.duration_seconds * 100)}>
+                      <span style={{ width: `${Math.max(0, Math.min(100, 100 - focusRemaining / activeFocusSession.duration_seconds * 100))}%` }} />
+                    </div>
+                    <small>{activeFocusSession.status === 'paused' ? 'Paused for both of you' : 'In session'}</small>
+                  </div>
+                  <div className="focus-controls">
+                    <button type="button" onClick={() => void toggleFocusPause()}>
+                      {activeFocusSession.status === 'paused' ? 'Resume' : 'Pause'}
+                    </button>
+                    <button type="button" onClick={() => {
+                      if (window.confirm('End this shared focus session for both of you?')) {
+                        void finishFocusSession(activeFocusSession.session_id, true);
+                      }
+                    }}>End session</button>
+                  </div>
+                </div>
+              ) : (
+                <form className="focus-start-form" onSubmit={startFocusSession}>
+                  <label htmlFor="focus-title">Session name</label>
+                  <input id="focus-title" maxLength={120} value={focusTitle} onChange={(event) => setFocusTitle(event.target.value)} />
+                  <label htmlFor="focus-type">Session type</label>
+                  <select id="focus-type" value={focusType} onChange={(event) => {
+                    const nextType = event.target.value as FocusType;
+                    setFocusType(nextType);
+                    if (nextType === 'focus' && focusMinutes > 180) setFocusMinutes(25);
+                    if (nextType !== 'focus' && focusMinutes > 60) setFocusMinutes(5);
+                  }}>
+                    <option value="focus">Focus</option>
+                    <option value="short_break">Short break</option>
+                    <option value="long_break">Long break</option>
+                  </select>
+                  <label htmlFor="focus-duration">Minutes</label>
+                  <input
+                    id="focus-duration"
+                    type="number"
+                    min="1"
+                    max={focusType === 'focus' ? 180 : 60}
+                    value={focusMinutes}
+                    onChange={(event) => setFocusMinutes(Number(event.target.value))}
+                  />
+                  <button type="submit" disabled={!focusTitle.trim() || focusMinutes < 1 || focusMinutes > (focusType === 'focus' ? 180 : 60)}>
+                    Start shared session
+                  </button>
+                </form>
+              )}
+
+              {!focusLoading && focusSessions.some((item) => item.status === 'completed' || item.status === 'cancelled') && (
+                <details className="focus-history">
+                  <summary>Recent sessions</summary>
+                  <ul>
+                    {focusSessions.filter((item) => item.status === 'completed' || item.status === 'cancelled').slice(0, 5).map((item) => (
+                      <li key={item.session_id}>
+                        <span>{item.title}</span>
+                        <span>{item.session_type.replace('_', ' ')} · {item.status} · {new Date(item.created_at).toLocaleString()}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </details>
+              )}
+            </section>
+
             <section className="task-form-section">
               <h2>{editingId ? 'Edit task' : 'Add a task'}</h2>
               <form className="task-form" onSubmit={handleSave}>
