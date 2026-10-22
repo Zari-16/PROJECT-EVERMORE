@@ -1695,9 +1695,23 @@ label {
   height: 100%;
 }
 
-.card-emblem-rose {
-  fill: #b53e58;
-  stroke: #77253a;
+.card-emblem-rose-petals {
+  fill: #c84f69;
+  stroke: #8a2b44;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.7;
+}
+
+.card-emblem-rose-center {
+  fill: #f1bd5b;
+  stroke: #8a2b44;
+  stroke-width: 1.4;
+}
+
+.card-emblem-rose-stem {
+  fill: none;
+  stroke: #557344;
   stroke-linecap: round;
   stroke-linejoin: round;
   stroke-width: 2.5;
@@ -1715,6 +1729,11 @@ label {
   fill: #f4f6ff;
   stroke: #536991;
   stroke-width: 1.6;
+}
+
+.card-emblem-moon-cut {
+  fill: #b9d3ec;
+  stroke: none;
 }
 
 .card-emblem-star {

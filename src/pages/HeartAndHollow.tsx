@@ -44,11 +44,15 @@ function CardEmblem({ color }: { color: PlayingCard['color'] }) {
   if (color === 'rose') {
     return (
       <svg viewBox="0 0 64 64" aria-hidden="true" focusable="false">
-        <g className="card-emblem-rose">
-          <path d="M31 35c-2 9-3 17-2 24m2-15c-9-8-17-6-18 0 7 6 13 6 18 3m1-8c8-9 16-8 18-2-6 7-12 9-18 6" />
-          <path d="M31 34c-12-1-18-8-14-15 5-8 12-4 15 1 5-10 14-9 16-2 2 8-5 14-17 16Z" />
-          <path d="M30 32c-5-6-2-12 3-12 5 0 7 6 2 12m-5-2c7-3 12 1 9 6-3 4-9 2-9-4" />
+        <path className="card-emblem-rose-stem" d="M32 36c-2 8-2 16-1 23m0-14c-8-8-15-7-17-1 6 6 12 7 18 4m0-8c7-8 14-7 17-1-6 6-11 7-17 4" />
+        <g className="card-emblem-rose-petals">
+          <ellipse cx="32" cy="16" rx="7" ry="9" />
+          <ellipse cx="43" cy="24" rx="7" ry="9" transform="rotate(55 43 24)" />
+          <ellipse cx="39" cy="37" rx="7" ry="9" transform="rotate(125 39 37)" />
+          <ellipse cx="25" cy="37" rx="7" ry="9" transform="rotate(-125 25 37)" />
+          <ellipse cx="21" cy="24" rx="7" ry="9" transform="rotate(-55 21 24)" />
         </g>
+        <circle className="card-emblem-rose-center" cx="32" cy="27" r="5" />
       </svg>
     );
   }
@@ -65,7 +69,8 @@ function CardEmblem({ color }: { color: PlayingCard['color'] }) {
   if (color === 'moon') {
     return (
       <svg viewBox="0 0 64 64" aria-hidden="true" focusable="false">
-        <path className="card-emblem-moon" d="M43 10c-3 4-5 9-5 15 0 14 11 25 25 26-5 5-12 8-20 8-17 0-30-13-30-30S26-1 43 10Z" transform="translate(-5 0)" />
+        <circle className="card-emblem-moon" cx="29" cy="32" r="22" />
+        <circle className="card-emblem-moon-cut" cx="40" cy="24" r="19" />
         <path className="card-emblem-star" d="m47 12 2 5 5 2-5 2-2 5-2-5-5-2 5-2 2-5Zm-28 29 1.5 3.5L24 46l-3.5 1.5L19 51l-1.5-3.5L14 46l3.5-1.5L19 41Z" />
       </svg>
     );
