@@ -172,6 +172,97 @@ html,body,#root { height:100%; margin:0; padding:0; font-family: Inter, system-u
   clip-path: inset(50%);
 }
 
+.whiteboard-page {
+  max-width: 1200px;
+  min-height: calc(100vh - 64px);
+  margin: 24px auto;
+  padding: 0 16px;
+}
+
+.whiteboard-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.whiteboard-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.whiteboard-header h1 {
+  margin: 0;
+}
+
+.whiteboard-connection {
+  color: var(--muted);
+  font-size: 0.875rem;
+}
+
+.whiteboard-connection-connected {
+  color: #267447;
+}
+
+.whiteboard-connection-disconnected {
+  color: var(--accent);
+}
+
+.whiteboard-tools {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.whiteboard-tools label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.whiteboard-tools input[type="color"] {
+  width: 40px;
+  height: 36px;
+  padding: 2px;
+}
+
+.whiteboard-tools input[type="range"] {
+  width: 112px;
+}
+
+.whiteboard-canvas {
+  display: block;
+  width: 100%;
+  height: min(68vh, 680px);
+  min-height: 320px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #fff;
+  cursor: crosshair;
+  touch-action: none;
+}
+
+.whiteboard-pending,
+.whiteboard-feedback,
+.whiteboard-note {
+  margin: 0;
+}
+
+.whiteboard-pending {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.whiteboard-note {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
 @media (max-width: 600px) {
   .chat-page {
     min-height: calc(100vh - 56px);
@@ -185,5 +276,16 @@ html,body,#root { height:100%; margin:0; padding:0; font-family: Inter, system-u
 
   .chat-message {
     width: 90%;
+  }
+
+  .whiteboard-page {
+    min-height: calc(100vh - 56px);
+    margin: 12px auto;
+    padding: 0 8px;
+  }
+
+  .whiteboard-canvas {
+    height: 60vh;
+    min-height: 280px;
   }
 }
