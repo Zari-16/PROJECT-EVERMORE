@@ -8,6 +8,9 @@ type DailyQuestion = {
   question_id: string;
   prompt: string;
   category: string;
+  progression_year: number;
+  depth: string;
+  journey_day: number;
 };
 
 type SpaceRow = {
@@ -172,8 +175,11 @@ export default function Questions() {
       <section className="questions-panel">
         <header className="questions-header">
           <div>
-            <p className="questions-eyebrow">{question?.category} · {question?.question_date}</p>
+            <p className="questions-eyebrow">
+              Year {question?.progression_year} of 7 · Day {question?.journey_day} of 2,557 · {question?.category}
+            </p>
             <h1>Our Little Questions</h1>
+            <p className="questions-stage">{question?.depth} · shaped for connection across distance</p>
           </div>
         </header>
 
