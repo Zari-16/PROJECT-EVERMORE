@@ -1664,10 +1664,13 @@ label {
 }
 
 .playing-card {
-  display: grid;
+  display: flex;
   width: 86px;
   min-height: 122px;
-  place-items: center;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
   padding: 9px;
   border: 2px solid rgba(255, 255, 255, 0.9);
   border-radius: 10px;
@@ -1677,6 +1680,67 @@ label {
   text-align: center;
   text-transform: capitalize;
   transition: transform 150ms ease, box-shadow 150ms ease;
+}
+
+.card-emblem {
+  display: block;
+  width: 46px;
+  height: 46px;
+  flex: 0 0 auto;
+}
+
+.card-emblem svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.card-emblem-rose {
+  fill: #b53e58;
+  stroke: #77253a;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2.5;
+}
+
+.card-emblem-moss {
+  fill: #71944c;
+  stroke: #405c36;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2.5;
+}
+
+.card-emblem-moon {
+  fill: #f4f6ff;
+  stroke: #536991;
+  stroke-width: 1.6;
+}
+
+.card-emblem-star {
+  fill: #e7bd60;
+  stroke: none;
+}
+
+.card-emblem-ember {
+  fill: #d86a31;
+  stroke: #913915;
+  stroke-width: 1.5;
+}
+
+.card-emblem-wild {
+  fill: rgba(255, 255, 255, 0.72);
+  stroke: #33243b;
+  stroke-width: 2;
+}
+
+.card-emblem-wild-cut {
+  fill: #33243b;
+}
+
+.playing-card-label {
+  line-height: 1.2;
+  text-align: center;
 }
 
 button.playing-card:not(:disabled):hover {

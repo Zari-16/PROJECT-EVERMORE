@@ -40,6 +40,54 @@ function cardLabel(card: PlayingCard) {
   return `${card.color ? `${COLOR_NAMES[card.color]} ` : ''}${card.kind.replace('_', ' ')}`.trim();
 }
 
+function CardEmblem({ color }: { color: PlayingCard['color'] }) {
+  if (color === 'rose') {
+    return (
+      <svg viewBox="0 0 64 64" aria-hidden="true" focusable="false">
+        <g className="card-emblem-rose">
+          <path d="M31 35c-2 9-3 17-2 24m2-15c-9-8-17-6-18 0 7 6 13 6 18 3m1-8c8-9 16-8 18-2-6 7-12 9-18 6" />
+          <path d="M31 34c-12-1-18-8-14-15 5-8 12-4 15 1 5-10 14-9 16-2 2 8-5 14-17 16Z" />
+          <path d="M30 32c-5-6-2-12 3-12 5 0 7 6 2 12m-5-2c7-3 12 1 9 6-3 4-9 2-9-4" />
+        </g>
+      </svg>
+    );
+  }
+  if (color === 'moss') {
+    return (
+      <svg viewBox="0 0 64 64" aria-hidden="true" focusable="false">
+        <g className="card-emblem-moss">
+          <path d="M13 49C17 24 33 12 53 12 52 33 40 48 13 49Z" />
+          <path d="M14 50c11-13 21-22 35-32m-19 17-2-12m11 4 9 1" />
+        </g>
+      </svg>
+    );
+  }
+  if (color === 'moon') {
+    return (
+      <svg viewBox="0 0 64 64" aria-hidden="true" focusable="false">
+        <path className="card-emblem-moon" d="M43 10c-3 4-5 9-5 15 0 14 11 25 25 26-5 5-12 8-20 8-17 0-30-13-30-30S26-1 43 10Z" transform="translate(-5 0)" />
+        <path className="card-emblem-star" d="m47 12 2 5 5 2-5 2-2 5-2-5-5-2 5-2 2-5Zm-28 29 1.5 3.5L24 46l-3.5 1.5L19 51l-1.5-3.5L14 46l3.5-1.5L19 41Z" />
+      </svg>
+    );
+  }
+  if (color === 'ember') {
+    return (
+      <svg viewBox="0 0 64 64" aria-hidden="true" focusable="false">
+        <g className="card-emblem-ember">
+          <path d="M31 5h3v12h-3zM31 47h3v12h-3zM5 31h12v3H5zm42 0h12v3H47zM12 12l2-2 9 9-2 2zm29 29 2-2 9 9-2 2zM50 12l2 2-9 9-2-2zM21 41l2 2-9 9-2-2z" />
+          <circle cx="32" cy="32" r="12" />
+        </g>
+      </svg>
+    );
+  }
+  return (
+    <svg viewBox="0 0 64 64" aria-hidden="true" focusable="false">
+      <path className="card-emblem-wild" d="M32 6 43 21 60 18 53 34 62 47 44 47 32 60 21 46 4 49 11 33 3 19 21 20 32 6Z" />
+      <path className="card-emblem-wild-cut" d="m32 16 6 13 13 3-13 4-6 13-5-13-13-4 13-3 5-13Z" />
+    </svg>
+  );
+}
+
 export default function HeartAndHollow() {
   const { session } = useAuth();
   const [spaceId, setSpaceId] = useState<string | null>(null);
@@ -189,7 +237,8 @@ export default function HeartAndHollow() {
               <div>
                 <span className="card-table-label">Top card</span>
                 {activeGame.top_card && <span className={`playing-card playing-card-${activeGame.top_card.color ?? 'wild'}`}>
-                  <strong>{cardLabel(activeGame.top_card)}</strong>
+                  <CardEmblem color={activeGame.top_card.color} />
+                  <strong className="playing-card-label">{cardLabel(activeGame.top_card)}</strong>
                 </span>}
               </div>
               <button className="draw-pile" type="button" disabled={busy || !isMyTurn} onClick={() => void drawCards()}>
@@ -218,7 +267,8 @@ export default function HeartAndHollow() {
                     onClick={() => void playCard(card)}
                     aria-label={`Play ${cardLabel(card)}`}
                   >
-                    <strong>{cardLabel(card)}</strong>
+                    <CardEmblem color={card.color} />
+                    <strong className="playing-card-label">{cardLabel(card)}</strong>
                   </button>
                 ))}
               </div>
