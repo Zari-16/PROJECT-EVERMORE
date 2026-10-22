@@ -5,6 +5,7 @@ import { supabase } from '../lib/supabase';
 export default function Profile() {
   const { session } = useAuth();
   const [displayName, setDisplayName] = useState('');
+  const [savedDisplayName, setSavedDisplayName] = useState('');
   const [profileExists, setProfileExists] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -33,7 +34,9 @@ export default function Profile() {
       } else if (!data) {
         setError('Profile not found. Apply migrations/003_profiles.sql in Supabase, then reload.');
       } else {
-        setDisplayName(data.display_name ?? '');
+        const name = data.display_name ?? '';
+        setDisplayName(name);
+        setSavedDisplayName(name);
         setProfileExists(true);
       }
       setLoading(false);
@@ -65,9 +68,12 @@ export default function Profile() {
     if (saveError) setError(saveError.message);
     else {
       setDisplayName(name);
+      setSavedDisplayName(name);
       setNotice('Profile saved.');
     }
   }
+
+  const hasChanges = displayName.trim() !== savedDisplayName;
 
   if (loading) return <main role="status">Loading profile...</main>;
 
@@ -84,14 +90,18 @@ export default function Profile() {
             maxLength={40}
             required
             value={displayName}
-            onChange={(event) => setDisplayName(event.target.value)}
+            onChange={(event) => {
+              setDisplayName(event.target.value);
+              setNotice(null);
+              setError(null);
+            }}
           />
-          <button type="submit" disabled={saving || loading || !profileExists}>
-            {saving ? 'Saving...' : 'Save profile'}
+          <button type="submit" disabled={saving || loading || !profileExists || !hasChanges}>
+            {saving ? 'Saving...' : hasChanges ? 'Save profile' : 'Saved'}
           </button>
         </form>
         {error && <p role="alert">{error}</p>}
-        {notice && <p role="status">{notice}</p>}
+        {notice ? <p role="status">{notice}</p> : profileExists && !hasChanges && <p role="status">Your profile is up to date.</p>}
       </section>
     </main>
   );

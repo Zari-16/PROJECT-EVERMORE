@@ -6,6 +6,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import { useAuth } from './components/AuthProvider';
 import { supabase } from './lib/supabase';
 import Home from './pages/Home';
+import Pairing from './pages/Pairing';
 import Profile from './pages/Profile';
 
 export default function App() {
@@ -26,6 +27,7 @@ export default function App() {
         {session ? (
           <>
             <Link to="/profile">Profile</Link>
+            <Link to="/pairing">Pairing</Link>
             <button type="button" onClick={handleSignOut}>Sign out</button>
           </>
         ) : (
@@ -42,6 +44,7 @@ export default function App() {
         <Route element={<ProtectedRoute />}>
           <Route path="/" element={<Home />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/pairing" element={<Pairing />} />
         </Route>
       </Routes>
     </div>

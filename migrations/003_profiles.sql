@@ -13,6 +13,9 @@ alter table public.profiles
 
 alter table public.profiles enable row level security;
 
+revoke all privileges on table public.profiles from anon, public;
+grant select, update on table public.profiles to authenticated;
+
 drop policy if exists profiles_self_select on public.profiles;
 create policy profiles_self_select
   on public.profiles for select to authenticated
