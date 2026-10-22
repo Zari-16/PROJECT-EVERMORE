@@ -11,15 +11,24 @@ export default function Login() {
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
+    if (!supabase) {
+      setError('Supabase is not configured. Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to your .env file.');
+      return;
+    }
+
     setLoading(true);
     setError(null);
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-    setLoading(false);
-    if (error) {
-      setError(error.message);
-    } else {
-      // redirect to profile setup if new user, else home
-      nav('/');
+    try {
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) {
+        setError(error.message);
+      } else {
+        nav('/');
+      }
+    } catch {
+      setError('Unable to reach Supabase. Check your connection and try again.');
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -30,10 +39,10 @@ export default function Login() {
         <p className="muted">Sign in with your email and password.</p>
         <form onSubmit={handleLogin}>
           <label>Email
-            <input aria-label="email" value={email} onChange={(e)=>setEmail(e.target.value)} />
+            <input aria-label="email" type="email" autoComplete="email" required value={email} onChange={(e)=>setEmail(e.target.value)} />
           </label>
           <label>Password
-            <input aria-label="password" type="password" value={password} onChange={(e)=>setPassword(e.target.value)} />
+            <input aria-label="password" type="password" autoComplete="current-password" required value={password} onChange={(e)=>setPassword(e.target.value)} />
           </label>
           <div style={{marginTop:12}}>
             <button disabled={loading} type="submit">{loading ? 'Signing in...' : 'Sign in'}</button>
