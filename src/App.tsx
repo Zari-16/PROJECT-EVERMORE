@@ -7,6 +7,7 @@ import { useAuth } from './components/AuthProvider';
 import { supabase } from './lib/supabase';
 import Home from './pages/Home';
 import Pairing from './pages/Pairing';
+import Chat from './pages/Chat';
 import Profile from './pages/Profile';
 
 export default function App() {
@@ -28,6 +29,7 @@ export default function App() {
           <>
             <Link to="/profile">Profile</Link>
             <Link to="/pairing">Pairing</Link>
+            <Link to="/chat">Chat</Link>
             <button type="button" onClick={handleSignOut}>Sign out</button>
           </>
         ) : (
@@ -45,6 +47,7 @@ export default function App() {
           <Route path="/" element={<Home />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/pairing" element={<Pairing />} />
+          <Route path="/chat" element={<Chat />} />
         </Route>
       </Routes>
     </div>
