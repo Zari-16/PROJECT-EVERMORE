@@ -45,8 +45,8 @@ function CardEmblem({ color }: { color: PlayingCard['color'] }) {
     return (
       <svg viewBox="0 0 64 64" aria-hidden="true" focusable="false">
         <g className="card-emblem-lines card-emblem-rose-lines">
-          <path d="M32 14c-6-9-17-5-15 6-11 1-13 13-3 17-6 9 2 19 12 14 5 10 18 7 17-4 11-2 12-14 2-18 5-10-5-19-13-12Z" />
-          <path d="M32 31c-5-5-2-10 2-9 4 1 3 6-1 8-3 2-2 6 2 7" />
+          <path d="M32 10c-7 0-9 9 0 17 9-8 7-17 0-17Zm8 11c-6 3-7 9-5 12 11 0 15-7 11-12-2-2-4-2-6 0Zm6 14c-6-3-11 1-12 5 6 9 15 7 16 1 0-3-1-5-4-6Zm-13 8c-2-6-8-7-12-4-3 11 5 16 11 13 3-2 3-5 1-9Zm-10-11c6 1 10-4 9-8-9-6-16-1-14 6 1 3 3 4 5 2Z" />
+          <path d="M32 29c-3-3-1-6 2-6 3 0 4 4 1 6-2 2-1 4 2 5" />
         </g>
       </svg>
     );
@@ -55,8 +55,8 @@ function CardEmblem({ color }: { color: PlayingCard['color'] }) {
     return (
       <svg viewBox="0 0 64 64" aria-hidden="true" focusable="false">
         <g className="card-emblem-lines card-emblem-moss-lines">
-          <path d="M9 52C10 27 27 10 55 9 54 36 37 52 9 52Z" />
-          <path d="M10 51c13-14 27-28 44-41M24 38l-1-12m11 2 1-12m-2 29 13-1m-18-7-12-2" />
+          <path d="M10 51C12 29 29 12 54 10 52 34 36 50 10 54Z" />
+          <path d="M12 52c13-13 26-26 40-40M24 40l-2-9m13-4 1-9m-3 26 9 1" />
         </g>
       </svg>
     );
