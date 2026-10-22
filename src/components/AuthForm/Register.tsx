@@ -20,7 +20,7 @@ export default function Register() {
     setLoading(true);
     setError(null);
     try {
-      const { error } = await supabase.auth.signUp({ email, password, options: { emailRedirectTo: window.location.origin + '/' }});
+      const { error } = await supabase.auth.signUp({ email, password, options: { emailRedirectTo: window.location.origin + import.meta.env.BASE_URL }});
       if (error) setError(error.message);
       else setInfo('Check your email for a verification link. After verifying, sign in.');
     } catch {
