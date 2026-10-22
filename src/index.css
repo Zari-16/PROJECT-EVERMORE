@@ -53,12 +53,6 @@ input,
 select,
 textarea {
   font: inherit;
-}
-
-button,
-input,
-select,
-textarea {
   border-radius: 6px;
 }
 
@@ -103,15 +97,6 @@ textarea {
 
 label {
   color: var(--text);
-}
-
-.fantasy-atmosphere {
-  position: fixed;
-  z-index: 0;
-  inset: 76px 0 0;
-  overflow: hidden;
-  pointer-events: none;
-  color: var(--accent);
 }
 
 .fantasy-vine {
@@ -1695,66 +1680,34 @@ label {
   height: 100%;
 }
 
-.card-emblem-rose-petals {
-  fill: #c84f69;
-  stroke: #8a2b44;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-width: 1.7;
-}
-
-.card-emblem-rose-center {
-  fill: #f1bd5b;
-  stroke: #8a2b44;
-  stroke-width: 1.4;
-}
-
-.card-emblem-rose-stem {
+.card-emblem-lines {
   fill: none;
-  stroke: #557344;
   stroke-linecap: round;
   stroke-linejoin: round;
   stroke-width: 2.5;
 }
 
-.card-emblem-moss {
-  fill: #71944c;
-  stroke: #405c36;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-width: 2.5;
-}
+.card-emblem-rose-lines { stroke: #8a2b44; }
+.card-emblem-moss-lines { stroke: #405c36; }
+.card-emblem-moon-lines { stroke: #536991; }
+.card-emblem-ember-lines { stroke: #913915; }
+.card-emblem-wild-lines { stroke: #33243b; }
 
-.card-emblem-moon {
-  fill: #f4f6ff;
-  stroke: #536991;
-  stroke-width: 1.6;
-}
-
-.card-emblem-moon-cut {
-  fill: #b9d3ec;
-  stroke: none;
-}
-
-.card-emblem-star {
-  fill: #e7bd60;
-  stroke: none;
-}
-
-.card-emblem-ember {
-  fill: #d86a31;
-  stroke: #913915;
-  stroke-width: 1.5;
-}
-
-.card-emblem-wild {
-  fill: rgba(255, 255, 255, 0.72);
-  stroke: #33243b;
-  stroke-width: 2;
-}
-
+.card-emblem-rose-petals,
+.card-emblem-rose-center,
+.card-emblem-rose-stem,
+.card-emblem-moss,
+.card-emblem-moon,
+.card-emblem-moon-cut,
+.card-emblem-star,
+.card-emblem-ember,
+.card-emblem-wild,
 .card-emblem-wild-cut {
-  fill: #33243b;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2.5;
 }
 
 .playing-card-label {

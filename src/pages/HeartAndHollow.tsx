@@ -44,24 +44,21 @@ function CardEmblem({ color }: { color: PlayingCard['color'] }) {
   if (color === 'rose') {
     return (
       <svg viewBox="0 0 64 64" aria-hidden="true" focusable="false">
-        <path className="card-emblem-rose-stem" d="M32 36c-2 8-2 16-1 23m0-14c-8-8-15-7-17-1 6 6 12 7 18 4m0-8c7-8 14-7 17-1-6 6-11 7-17 4" />
-        <g className="card-emblem-rose-petals">
-          <ellipse cx="32" cy="16" rx="7" ry="9" />
-          <ellipse cx="43" cy="24" rx="7" ry="9" transform="rotate(55 43 24)" />
-          <ellipse cx="39" cy="37" rx="7" ry="9" transform="rotate(125 39 37)" />
-          <ellipse cx="25" cy="37" rx="7" ry="9" transform="rotate(-125 25 37)" />
-          <ellipse cx="21" cy="24" rx="7" ry="9" transform="rotate(-55 21 24)" />
+        <g className="card-emblem-lines card-emblem-rose-lines">
+          <path d="M32 34c-12-2-20-9-17-18 3-8 13-8 17 0 4-8 14-8 17 0 3 9-5 16-17 18Z" />
+          <path d="M32 34c-10 0-15 9-10 15 4 5 12 3 10-3 3 6 11 8 15 2 4-7-3-14-15-14Z" />
+          <path d="M32 31c-6-6-3-12 2-12 5 0 7 6 1 12-4 4-2 8 2 9" />
+          <path d="M32 36c-1 8-1 16 0 23m0-14c-8-7-14-5-15 0 5 5 10 6 15 3m0-9c7-7 13-6 15-1-5 6-10 7-15 4" />
         </g>
-        <circle className="card-emblem-rose-center" cx="32" cy="27" r="5" />
       </svg>
     );
   }
   if (color === 'moss') {
     return (
       <svg viewBox="0 0 64 64" aria-hidden="true" focusable="false">
-        <g className="card-emblem-moss">
-          <path d="M13 49C17 24 33 12 53 12 52 33 40 48 13 49Z" />
-          <path d="M14 50c11-13 21-22 35-32m-19 17-2-12m11 4 9 1" />
+        <g className="card-emblem-lines card-emblem-moss-lines">
+          <path d="M10 52C10 27 25 11 54 10 53 36 37 52 10 52Z" />
+          <path d="M11 52c12-15 25-28 42-41M25 38l-2-12m12 2 1-11m0 25 12-1" />
         </g>
       </svg>
     );
@@ -69,26 +66,29 @@ function CardEmblem({ color }: { color: PlayingCard['color'] }) {
   if (color === 'moon') {
     return (
       <svg viewBox="0 0 64 64" aria-hidden="true" focusable="false">
-        <circle className="card-emblem-moon" cx="29" cy="32" r="22" />
-        <circle className="card-emblem-moon-cut" cx="40" cy="24" r="19" />
-        <path className="card-emblem-star" d="m47 12 2 5 5 2-5 2-2 5-2-5-5-2 5-2 2-5Zm-28 29 1.5 3.5L24 46l-3.5 1.5L19 51l-1.5-3.5L14 46l3.5-1.5L19 41Z" />
+        <g className="card-emblem-lines card-emblem-moon-lines">
+          <path d="M43 8C26 11 16 25 19 40c3 16 20 24 35 16-8 1-16-2-21-8-8-9-8-23 0-32 3-4 6-6 10-8Z" />
+          <path d="m47 11 1 4 4 1-4 1-1 4-1-4-4-1 4-1 1-4Zm-29 31 1 3 3 1-3 1-1 3-1-3-3-1 3-1 1-3Z" />
+        </g>
       </svg>
     );
   }
   if (color === 'ember') {
     return (
       <svg viewBox="0 0 64 64" aria-hidden="true" focusable="false">
-        <g className="card-emblem-ember">
-          <path d="M31 5h3v12h-3zM31 47h3v12h-3zM5 31h12v3H5zm42 0h12v3H47zM12 12l2-2 9 9-2 2zm29 29 2-2 9 9-2 2zM50 12l2 2-9 9-2-2zM21 41l2 2-9 9-2-2z" />
+        <g className="card-emblem-lines card-emblem-ember-lines">
           <circle cx="32" cy="32" r="12" />
+          <path d="M32 5v10m0 34v10M5 32h10m34 0h10M13 13l7 7m24 24 7 7m0-38-7 7m-24 24-7 7" />
         </g>
       </svg>
     );
   }
   return (
     <svg viewBox="0 0 64 64" aria-hidden="true" focusable="false">
-      <path className="card-emblem-wild" d="M32 6 43 21 60 18 53 34 62 47 44 47 32 60 21 46 4 49 11 33 3 19 21 20 32 6Z" />
-      <path className="card-emblem-wild-cut" d="m32 16 6 13 13 3-13 4-6 13-5-13-13-4 13-3 5-13Z" />
+      <g className="card-emblem-lines card-emblem-wild-lines">
+        <path d="M32 7 41 23 58 32 41 41 32 57 23 41 6 32 23 23 32 7Z" />
+        <path d="M32 19v26M19 32h26M24 24l16 16m0-16L24 40" />
+      </g>
     </svg>
   );
 }
