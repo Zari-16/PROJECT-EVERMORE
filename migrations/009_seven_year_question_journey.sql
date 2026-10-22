@@ -255,7 +255,7 @@ alter table public.question_journey_starts enable row level security;
 revoke all privileges on table public.question_journey_starts from anon, public, authenticated;
 
 insert into public.question_journey_starts (space_id, start_date)
-select space.id, coalesce((space.created_at at time zone 'UTC')::date, (now() at time zone 'UTC')::date)
+select space.id, (now() at time zone 'UTC')::date
   from public.private_spaces as space
 on conflict (space_id) do nothing;
 
