@@ -1693,23 +1693,6 @@ label {
 .card-emblem-ember-lines { stroke: #913915; }
 .card-emblem-wild-lines { stroke: #33243b; }
 
-.card-emblem-rose-petals,
-.card-emblem-rose-center,
-.card-emblem-rose-stem,
-.card-emblem-moss,
-.card-emblem-moon,
-.card-emblem-moon-cut,
-.card-emblem-star,
-.card-emblem-ember,
-.card-emblem-wild,
-.card-emblem-wild-cut {
-  fill: none;
-  stroke: currentColor;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-width: 2.5;
-}
-
 .playing-card-label {
   line-height: 1.2;
   text-align: center;
