@@ -10,6 +10,7 @@ type CalendarEvent = {
   description: string;
   category: string;
   starts_at: string;
+  color: string;
   visibility: 'private' | 'shared';
   updated_at: string;
 };
@@ -21,6 +22,7 @@ type EventForm = {
   description: string;
   category: string;
   starts_at: string;
+  color: string;
   visibility: 'private' | 'shared';
 };
 
@@ -29,9 +31,34 @@ const EMPTY_FORM: EventForm = {
   description: '',
   category: 'Date idea',
   starts_at: '',
+  color: '#773f91',
   visibility: 'private',
 };
-const EVENT_COLUMNS = 'id,space_id,created_by,title,description,category,starts_at,visibility,updated_at';
+const EVENT_COLUMNS = 'id,space_id,created_by,title,description,category,starts_at,color,visibility,updated_at';
+
+function localDateKey(date: Date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+function dateKeyToLocalDate(key: string) {
+  const [year, month, day] = key.split('-').map(Number);
+  return new Date(year, month - 1, day);
+}
+
+function getCalendarDays(month: Date) {
+  const first = new Date(month.getFullYear(), month.getMonth(), 1);
+  const mondayOffset = (first.getDay() + 6) % 7;
+  const start = new Date(first.getFullYear(), first.getMonth(), 1 - mondayOffset);
+  return Array.from({ length: 42 }, (_, index) => new Date(start.getFullYear(), start.getMonth(), start.getDate() + index));
+}
+
+function getThemeAccent() {
+  const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
+  return /^#[0-9a-f]{6}$/i.test(accent) ? accent : '#773f91';
+}
 
 function toLocalInput(value: string) {
   const date = new Date(value);
@@ -42,8 +69,13 @@ export default function Calendar() {
   const { session } = useAuth();
   const [spaceId, setSpaceId] = useState<string | null>(null);
   const [events, setEvents] = useState<CalendarEvent[]>([]);
-  const [form, setForm] = useState<EventForm>(EMPTY_FORM);
+  const [form, setForm] = useState<EventForm>(() => ({ ...EMPTY_FORM, color: getThemeAccent() }));
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [calendarMonth, setCalendarMonth] = useState(() => {
+    const now = new Date();
+    return new Date(now.getFullYear(), now.getMonth(), 1);
+  });
+  const [selectedDate, setSelectedDate] = useState(() => localDateKey(new Date()));
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -132,15 +164,19 @@ export default function Calendar() {
       description: event.description,
       category: event.category,
       starts_at: toLocalInput(event.starts_at),
+      color: event.color,
       visibility: event.visibility,
     });
+    const eventDate = new Date(event.starts_at);
+    setSelectedDate(localDateKey(eventDate));
+    setCalendarMonth(new Date(eventDate.getFullYear(), eventDate.getMonth(), 1));
     setError(null);
     setNotice(null);
   }
 
   function cancelEdit() {
     setEditingId(null);
-    setForm({ ...EMPTY_FORM, visibility: spaceId ? 'shared' : 'private' });
+    setForm({ ...EMPTY_FORM, color: getThemeAccent() });
   }
 
   async function handleSave(event: FormEvent<HTMLFormElement>) {
@@ -164,6 +200,7 @@ export default function Calendar() {
       description,
       category: form.category,
       starts_at: startsAt.toISOString(),
+      color: form.color,
       visibility: form.visibility,
       space_id: form.visibility === 'shared' ? spaceId : null,
     };
@@ -179,7 +216,7 @@ export default function Calendar() {
     else {
       setNotice(editingId ? 'Event updated.' : 'Event saved.');
       setEditingId(null);
-      setForm(EMPTY_FORM);
+      setForm({ ...EMPTY_FORM, color: getThemeAccent() });
       await loadEvents();
     }
     setSaving(false);
@@ -204,6 +241,27 @@ export default function Calendar() {
 
   if (loading) return <main role="status">Loading calendar...</main>;
 
+  const calendarDays = getCalendarDays(calendarMonth);
+  const eventsByDate = new Map<string, CalendarEvent[]>();
+  for (const event of events) {
+    const key = localDateKey(new Date(event.starts_at));
+    eventsByDate.set(key, [...(eventsByDate.get(key) ?? []), event]);
+  }
+  const selectedEvents = eventsByDate.get(selectedDate) ?? [];
+  const todayKey = localDateKey(new Date());
+  const monthLabel = calendarMonth.toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
+
+  function selectCalendarDate(date: Date) {
+    const key = localDateKey(date);
+    setSelectedDate(key);
+    setCalendarMonth(new Date(date.getFullYear(), date.getMonth(), 1));
+    if (!editingId) setForm((current) => ({ ...current, starts_at: `${key}T12:00` }));
+  }
+
+  function moveCalendarMonth(amount: number) {
+    setCalendarMonth((current) => new Date(current.getFullYear(), current.getMonth() + amount, 1));
+  }
+
   return (
     <main className="calendar-page">
       <section className="calendar-panel">
@@ -213,6 +271,64 @@ export default function Calendar() {
             <p>Personal notes stay yours; shared events are visible to both partners.</p>
           </div>
         </header>
+
+        <section className="calendar-month" aria-label="Monthly calendar">
+          <div className="calendar-month-toolbar">
+            <h2>{monthLabel}</h2>
+            <div>
+              <button type="button" aria-label="Previous month" onClick={() => moveCalendarMonth(-1)}>Previous</button>
+              <button type="button" onClick={() => selectCalendarDate(new Date())}>Today</button>
+              <button type="button" aria-label="Next month" onClick={() => moveCalendarMonth(1)}>Next</button>
+            </div>
+          </div>
+          <div className="calendar-month-grid" role="grid" aria-label={monthLabel}>
+            {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((weekday) => (
+              <div className="calendar-weekday" role="columnheader" key={weekday}>{weekday}</div>
+            ))}
+            {calendarDays.map((day) => {
+              const key = localDateKey(day);
+              const dayEvents = eventsByDate.get(key) ?? [];
+              const inMonth = day.getMonth() === calendarMonth.getMonth();
+              return (
+                <button
+                  type="button"
+                  role="gridcell"
+                  aria-selected={selectedDate === key}
+                  aria-label={`${day.toLocaleDateString()}${dayEvents.length ? `, ${dayEvents.length} events` : ''}`}
+                  className={`calendar-day${inMonth ? '' : ' calendar-day-outside'}${selectedDate === key ? ' calendar-day-selected' : ''}${key === todayKey ? ' calendar-day-today' : ''}`}
+                  key={key}
+                  onClick={() => selectCalendarDate(day)}
+                >
+                  <span className="calendar-day-number">{day.getDate()}</span>
+                  <span className="calendar-day-events">
+                    {dayEvents.slice(0, 2).map((event) => (
+                      <span
+                        className="calendar-event-chip"
+                        style={{ borderLeftColor: event.color }}
+                        title={`${event.title} · ${event.visibility === 'shared' ? 'Shared' : 'Private'}`}
+                        key={event.id}
+                      >
+                        {event.title}
+                      </span>
+                    ))}
+                    {dayEvents.length > 2 && <span className="calendar-event-overflow">+{dayEvents.length - 2} more</span>}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </section>
+
+        <section className="calendar-selected-day" aria-live="polite">
+          <h2>{dateKeyToLocalDate(selectedDate).toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}</h2>
+          {selectedEvents.length === 0 ? <p>No events on this day.</p> : selectedEvents.map((event) => (
+            <p className="calendar-selected-event" key={event.id}>
+              <span className="calendar-color-dot" style={{ backgroundColor: event.color }} aria-hidden="true" />
+              <time dateTime={event.starts_at}>{new Date(event.starts_at).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}</time>
+              {' · '}{event.title}{' · '}{event.visibility === 'shared' ? 'Shared' : 'Private'}
+            </p>
+          ))}
+        </section>
 
         <section className="calendar-form-section">
           <h2>{editingId ? 'Edit event' : 'Add an event'}</h2>
@@ -236,6 +352,9 @@ export default function Calendar() {
 
             <label htmlFor="event-start">Date and time</label>
             <input id="event-start" type="datetime-local" required value={form.starts_at} onChange={(event) => updateForm('starts_at', event.target.value)} />
+
+            <label htmlFor="event-color">Event color</label>
+            <input id="event-color" type="color" value={form.color} onChange={(event) => updateForm('color', event.target.value)} />
 
             <label htmlFor="event-visibility">Visibility</label>
             <select id="event-visibility" value={form.visibility} onChange={(event) => updateForm('visibility', event.target.value as EventForm['visibility'])}>
