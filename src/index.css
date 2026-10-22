@@ -27,6 +27,110 @@ html,body,#root { height:100%; margin:0; padding:0; font-family: Inter, system-u
   box-shadow: 0 0 20px var(--magic);
 }
 
+.site-header {
+  position: sticky;
+  z-index: 60;
+  top: 0;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 20px;
+  padding: 10px clamp(12px, 3vw, 30px);
+  border-bottom: 1px solid var(--border);
+  background: color-mix(in srgb, var(--bg) 92%, transparent);
+  box-shadow: 0 4px 18px rgba(25, 18, 35, 0.06);
+  backdrop-filter: blur(14px);
+}
+
+.site-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-width: max-content;
+  color: var(--text);
+  text-decoration: none;
+}
+
+.site-brand-mark {
+  position: relative;
+  width: 34px;
+  height: 38px;
+  border: 1px solid color-mix(in srgb, var(--accent) 65%, var(--border));
+  border-radius: 17px 17px 9px 9px;
+  background: color-mix(in srgb, var(--surface) 74%, var(--primary));
+  box-shadow: inset 0 0 0 3px color-mix(in srgb, var(--bg) 68%, transparent);
+}
+
+.site-brand-mark::after {
+  position: absolute;
+  top: 13px;
+  left: 11px;
+  width: 10px;
+  height: 10px;
+  border: 1px solid var(--accent);
+  content: '';
+  transform: rotate(45deg);
+}
+
+.site-brand-copy {
+  display: grid;
+  line-height: 1.1;
+}
+
+.site-brand-copy strong {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 1.1rem;
+}
+
+.site-brand-copy small {
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 0.7rem;
+}
+
+.site-navigation {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 4px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.site-navigation::-webkit-scrollbar {
+  display: none;
+}
+
+.site-nav-link {
+  flex: 0 0 auto;
+  padding: 9px 10px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  color: var(--muted);
+  font-size: 0.9rem;
+  text-decoration: none;
+  transition: background-color 150ms ease, color 150ms ease, border-color 150ms ease;
+}
+
+.site-nav-link:hover {
+  background: var(--surface);
+  color: var(--text);
+}
+
+.site-nav-link.is-active {
+  border-color: var(--border);
+  background: var(--surface);
+  color: var(--accent);
+  box-shadow: inset 0 -2px 0 var(--accent);
+}
+
+.site-signout {
+  flex: 0 0 auto;
+  border-color: var(--border);
+  background: transparent;
+  color: var(--text);
+}
+
 .chat-page {
   max-width: 900px;
   min-height: calc(100vh - 64px);
@@ -1233,6 +1337,29 @@ html,body,#root { height:100%; margin:0; padding:0; font-family: Inter, system-u
 }
 
 @media (max-width: 600px) {
+  .site-header {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px 12px;
+    padding: 8px 10px;
+  }
+
+  .site-brand-mark {
+    width: 30px;
+    height: 34px;
+  }
+
+  .site-navigation {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    margin: 0 -2px;
+    padding-bottom: 2px;
+  }
+
+  .site-nav-link {
+    padding: 8px 9px;
+    font-size: 0.84rem;
+  }
+
   .chat-page {
     min-height: calc(100vh - 56px);
     margin: 12px auto;

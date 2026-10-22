@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Routes, Route, Link } from 'react-router-dom';
+import { Routes, Route, Link, NavLink } from 'react-router-dom';
 import Login from './components/AuthForm/Login';
 import Register from './components/AuthForm/Register';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -28,27 +28,36 @@ export default function App() {
 
   return (
     <div>
-      <nav style={{padding:12, display:'flex', gap:12}}>
-        <Link to="/">Home</Link>
-        {session ? (
-          <>
-            <Link to="/profile">Profile</Link>
-            <Link to="/pairing">Pairing</Link>
-            <Link to="/chat">Chat</Link>
-            <Link to="/whiteboard">Whiteboard</Link>
-            <Link to="/questions">Questions</Link>
-            <Link to="/calendar">Calendar</Link>
-            <Link to="/memories">Memory Garden</Link>
-            <Link to="/room">Companion Room</Link>
-            <button type="button" onClick={handleSignOut}>Sign out</button>
-          </>
-        ) : (
-          <>
-            <Link to="/login">Login</Link>
-            <Link to="/register">Register</Link>
-          </>
-        )}
-      </nav>
+      <header className="site-header">
+        <Link className="site-brand" to="/" aria-label="Project Evermore home">
+          <span className="site-brand-mark" aria-hidden="true" />
+          <span className="site-brand-copy">
+            <strong>Evermore</strong>
+            <small>Our private realm</small>
+          </span>
+        </Link>
+        <nav className="site-navigation" aria-label="Main navigation">
+          {session ? (
+            <>
+              <NavLink to="/" end className={({ isActive }) => `site-nav-link${isActive ? ' is-active' : ''}`}>Home</NavLink>
+              <NavLink to="/profile" className={({ isActive }) => `site-nav-link${isActive ? ' is-active' : ''}`}>Profile</NavLink>
+              <NavLink to="/pairing" className={({ isActive }) => `site-nav-link${isActive ? ' is-active' : ''}`}>Pairing</NavLink>
+              <NavLink to="/chat" className={({ isActive }) => `site-nav-link${isActive ? ' is-active' : ''}`}>Chat</NavLink>
+              <NavLink to="/whiteboard" className={({ isActive }) => `site-nav-link${isActive ? ' is-active' : ''}`}>Whiteboard</NavLink>
+              <NavLink to="/questions" className={({ isActive }) => `site-nav-link${isActive ? ' is-active' : ''}`}>Questions</NavLink>
+              <NavLink to="/calendar" className={({ isActive }) => `site-nav-link${isActive ? ' is-active' : ''}`}>Calendar</NavLink>
+              <NavLink to="/memories" className={({ isActive }) => `site-nav-link${isActive ? ' is-active' : ''}`}>Memory Garden</NavLink>
+              <NavLink to="/room" className={({ isActive }) => `site-nav-link${isActive ? ' is-active' : ''}`}>Companion Room</NavLink>
+            </>
+          ) : (
+            <>
+              <NavLink to="/login" className={({ isActive }) => `site-nav-link${isActive ? ' is-active' : ''}`}>Login</NavLink>
+              <NavLink to="/register" className={({ isActive }) => `site-nav-link${isActive ? ' is-active' : ''}`}>Register</NavLink>
+            </>
+          )}
+        </nav>
+        {session && <button className="site-signout" type="button" onClick={handleSignOut}>Sign out</button>}
+      </header>
       {error && <p role="alert">{error}</p>}
       <Routes>
         <Route path="/login" element={<Login />} />
