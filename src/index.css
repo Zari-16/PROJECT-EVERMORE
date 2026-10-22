@@ -28,6 +28,15 @@ body {
   z-index: 1;
 }
 
+.app-route-content > * {
+  animation: realm-arrive 280ms ease-out both;
+}
+
+@keyframes realm-arrive {
+  from { opacity: 0; transform: translateY(7px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 h1,
 h2,
 h3 {
@@ -151,6 +160,24 @@ label {
   stroke-width: 1.4;
 }
 
+:root[data-theme="rose"] .fantasy-flower {
+  fill: color-mix(in srgb, #c55269 74%, var(--surface));
+}
+
+:root[data-theme="celestial"] .fantasy-flower,
+:root[data-theme="celestial"] .fantasy-butterfly {
+  fill: color-mix(in srgb, #91b5dc 72%, var(--surface));
+}
+
+:root[data-theme="blush-beige"] .fantasy-flower {
+  fill: color-mix(in srgb, #d18b87 70%, var(--surface));
+}
+
+:root[data-theme="verdant"] .fantasy-leaf,
+:root[data-theme="verdant"] .fantasy-flower {
+  fill: color-mix(in srgb, #8ca56b 70%, var(--surface));
+}
+
 @keyframes fantasy-sway {
   from { transform: rotate(-1.5deg) translateY(0); }
   to { transform: rotate(1.5deg) translateY(8px); }
@@ -162,6 +189,21 @@ label {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+  }
+
+  .app-route-content > * {
+    animation: none;
+  }
+}
+
+@media (max-width: 600px) {
+  .fantasy-atmosphere {
+    inset: 62px 0 0;
+  }
+
+  .fantasy-vine {
+    width: 56px;
+    opacity: 0.07;
   }
 }
 
@@ -182,6 +224,51 @@ label {
   box-shadow: 0 0 20px var(--magic);
 }
 
+:is(
+  .card,
+  .auth-form-panel,
+  .home-section,
+  .home-unpaired,
+  .chat-panel,
+  .daily-question,
+  .answer-form,
+  .answers-section,
+  .calendar-month,
+  .calendar-selected-day,
+  .calendar-form-section,
+  .calendar-list,
+  .memory-form-section,
+  .memories-library,
+  .memory-envelope,
+  .focus-session-section,
+  .task-form-section,
+  .shared-tasks-list
+) {
+  border-color: color-mix(in srgb, var(--accent) 22%, var(--border));
+  box-shadow: 0 12px 30px rgba(28, 20, 38, 0.07), 0 0 24px var(--magic);
+}
+
+:is(
+  .auth-form-heading h2,
+  .home-section-heading h2,
+  .chat-header h1,
+  .whiteboard-header h1,
+  .questions-header h1,
+  .calendar-header h1,
+  .memories-header h1,
+  .companion-header h1
+)::after {
+  display: inline-block;
+  width: 0.42em;
+  height: 0.42em;
+  margin-left: 0.55em;
+  border: 1px solid var(--accent);
+  content: '';
+  opacity: 0.7;
+  transform: rotate(45deg);
+  vertical-align: 0.1em;
+}
+
 .site-header {
   position: sticky;
   z-index: 60;
@@ -195,6 +282,17 @@ label {
   background: color-mix(in srgb, var(--bg) 92%, transparent);
   box-shadow: 0 4px 18px rgba(25, 18, 35, 0.06);
   backdrop-filter: blur(14px);
+}
+
+.site-header::after {
+  position: absolute;
+  right: 12%;
+  bottom: -1px;
+  left: 12%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent), var(--secondary), transparent);
+  content: '';
+  opacity: 0.7;
 }
 
 .site-brand {
