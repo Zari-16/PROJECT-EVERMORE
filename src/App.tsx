@@ -10,6 +10,7 @@ import Pairing from './pages/Pairing';
 import Chat from './pages/Chat';
 import Profile from './pages/Profile';
 import Whiteboard from './pages/Whiteboard';
+import Questions from './pages/Questions';
 
 export default function App() {
   const { session } = useAuth();
@@ -32,6 +33,7 @@ export default function App() {
             <Link to="/pairing">Pairing</Link>
             <Link to="/chat">Chat</Link>
             <Link to="/whiteboard">Whiteboard</Link>
+            <Link to="/questions">Questions</Link>
             <button type="button" onClick={handleSignOut}>Sign out</button>
           </>
         ) : (
@@ -51,6 +53,7 @@ export default function App() {
           <Route path="/pairing" element={<Pairing />} />
           <Route path="/chat" element={<Chat />} />
           <Route path="/whiteboard" element={<Whiteboard />} />
+          <Route path="/questions" element={<Questions />} />
         </Route>
       </Routes>
     </div>

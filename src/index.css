@@ -274,6 +274,87 @@ html,body,#root { height:100%; margin:0; padding:0; font-family: Inter, system-u
   font-size: 0.9rem;
 }
 
+.questions-page {
+  max-width: 900px;
+  min-height: calc(100vh - 64px);
+  margin: 24px auto;
+  padding: 0 16px;
+}
+
+.questions-panel {
+  display: grid;
+  gap: 20px;
+}
+
+.questions-header h1,
+.questions-header p,
+.daily-question h2,
+.answers-section h2,
+.partner-answer h3 {
+  margin: 0;
+}
+
+.questions-eyebrow {
+  color: var(--muted);
+}
+
+.daily-question,
+.answer-form,
+.answers-section {
+  padding: 20px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+}
+
+.daily-question h2 {
+  font-size: 1.5rem;
+}
+
+.answer-form {
+  display: grid;
+  gap: 12px;
+}
+
+.answer-form textarea {
+  min-height: 150px;
+  resize: vertical;
+}
+
+.answer-form-footer {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.answer-form-footer span {
+  margin-left: auto;
+  color: var(--muted);
+}
+
+.partner-answer {
+  margin-top: 14px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+}
+
+.partner-answer p {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.partner-answer small,
+.answer-hidden {
+  color: var(--muted);
+}
+
+.questions-feedback {
+  margin: 0;
+}
+
 @media (max-width: 600px) {
   .chat-page {
     min-height: calc(100vh - 56px);
@@ -298,5 +379,15 @@ html,body,#root { height:100%; margin:0; padding:0; font-family: Inter, system-u
   .whiteboard-canvas {
     height: 60vh;
     min-height: 280px;
+  }
+
+  .questions-page {
+    min-height: calc(100vh - 56px);
+    margin: 12px auto;
+    padding: 0 8px;
+  }
+
+  .answer-form-footer span {
+    margin-left: 0;
   }
 }
