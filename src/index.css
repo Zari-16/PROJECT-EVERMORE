@@ -1,13 +1,168 @@
 @import './styles/themes.css';
 
 * { box-sizing: border-box; }
-html,body,#root { height:100%; margin:0; padding:0; font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; background: var(--bg); color: var(--text); }
+html,body,#root { min-height:100%; margin:0; padding:0; background:var(--bg); color:var(--text); }
+
+html {
+  background-color: var(--bg);
+  background-image: repeating-linear-gradient(135deg, transparent 0 42px, color-mix(in srgb, var(--border) 28%, transparent) 43px, transparent 44px);
+}
+
+body {
+  font-family: 'Trebuchet MS', 'Segoe UI', sans-serif;
+  background: transparent;
+}
+
+#root {
+  min-height: 100vh;
+}
 
 .app-shell {
+  position: relative;
+  isolation: isolate;
   min-height: 100vh;
-  display: flex;
-  gap: 20px;
-  padding: 20px;
+}
+
+.app-route-content {
+  position: relative;
+  z-index: 1;
+}
+
+h1,
+h2,
+h3 {
+  font-family: Georgia, 'Palatino Linotype', 'Book Antiqua', serif;
+  text-wrap: balance;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button,
+input,
+select,
+textarea {
+  border-radius: 6px;
+}
+
+button {
+  min-height: 38px;
+  padding: 7px 12px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+  transition: border-color 150ms ease, background-color 150ms ease, transform 150ms ease;
+}
+
+button:not(:disabled):hover {
+  border-color: color-mix(in srgb, var(--accent) 55%, var(--border));
+  background: color-mix(in srgb, var(--surface) 78%, var(--primary));
+}
+
+button:not(:disabled):active {
+  transform: translateY(1px);
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.62;
+}
+
+input:not([type="color"]),
+select,
+textarea {
+  width: 100%;
+  min-height: 40px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+}
+
+textarea {
+  line-height: 1.5;
+}
+
+label {
+  color: var(--text);
+}
+
+.fantasy-atmosphere {
+  position: fixed;
+  z-index: 0;
+  inset: 76px 0 0;
+  overflow: hidden;
+  pointer-events: none;
+  color: var(--accent);
+}
+
+.fantasy-vine {
+  position: absolute;
+  top: 3vh;
+  width: clamp(74px, 10vw, 142px);
+  height: min(78vh, 620px);
+  overflow: visible;
+  opacity: 0.15;
+  animation: fantasy-sway 12s ease-in-out infinite alternate;
+}
+
+.fantasy-vine-left {
+  left: -16px;
+}
+
+.fantasy-vine-right {
+  right: -16px;
+  animation-delay: -5s;
+}
+
+.fantasy-vine-stem,
+.fantasy-butterfly-body {
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2;
+}
+
+.fantasy-vine-stem,
+.fantasy-butterfly-body {
+  fill: none;
+}
+
+.fantasy-leaf,
+.fantasy-flower {
+  fill: color-mix(in srgb, var(--secondary) 78%, var(--accent));
+  stroke: currentColor;
+  stroke-width: 1.5;
+}
+
+.fantasy-flower-center,
+.fantasy-crescent {
+  fill: var(--accent);
+}
+
+.fantasy-butterfly {
+  fill: color-mix(in srgb, var(--primary) 72%, var(--surface));
+  stroke: currentColor;
+  stroke-width: 1.4;
+}
+
+@keyframes fantasy-sway {
+  from { transform: rotate(-1.5deg) translateY(0); }
+  to { transform: rotate(1.5deg) translateY(8px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 /* accessible focus */

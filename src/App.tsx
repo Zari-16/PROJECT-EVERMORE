@@ -14,6 +14,7 @@ import Questions from './pages/Questions';
 import Calendar from './pages/Calendar';
 import Memories from './pages/Memories';
 import CompanionRoom from './pages/CompanionRoom';
+import FantasyAtmosphere from './components/FantasyAtmosphere';
 
 export default function App() {
   const { session } = useAuth();
@@ -27,7 +28,8 @@ export default function App() {
   }
 
   return (
-    <div>
+    <div className="app-shell">
+      <FantasyAtmosphere />
       <header className="site-header">
         <Link className="site-brand" to="/" aria-label="Project Evermore home">
           <span className="site-brand-mark" aria-hidden="true" />
@@ -59,21 +61,23 @@ export default function App() {
         {session && <button className="site-signout" type="button" onClick={handleSignOut}>Sign out</button>}
       </header>
       {error && <p role="alert">{error}</p>}
-      <Routes>
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route element={<ProtectedRoute />}>
-          <Route path="/" element={<Home />} />
-          <Route path="/profile" element={<Profile />} />
-          <Route path="/pairing" element={<Pairing />} />
-          <Route path="/chat" element={<Chat />} />
-          <Route path="/whiteboard" element={<Whiteboard />} />
-          <Route path="/questions" element={<Questions />} />
-          <Route path="/calendar" element={<Calendar />} />
-          <Route path="/memories" element={<Memories />} />
-          <Route path="/room" element={<CompanionRoom />} />
-        </Route>
-      </Routes>
+      <div className="app-route-content">
+        <Routes>
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route element={<ProtectedRoute />}>
+            <Route path="/" element={<Home />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/pairing" element={<Pairing />} />
+            <Route path="/chat" element={<Chat />} />
+            <Route path="/whiteboard" element={<Whiteboard />} />
+            <Route path="/questions" element={<Questions />} />
+            <Route path="/calendar" element={<Calendar />} />
+            <Route path="/memories" element={<Memories />} />
+            <Route path="/room" element={<CompanionRoom />} />
+          </Route>
+        </Routes>
+      </div>
     </div>
   );
 }
