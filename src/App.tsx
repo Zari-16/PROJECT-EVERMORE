@@ -20,6 +20,7 @@ import Games from './pages/Games';
 const Sudoku = lazy(() => import('./pages/Sudoku'));
 const HeartAndHollow = lazy(() => import('./pages/HeartAndHollow'));
 const Ludo = lazy(() => import('./pages/Ludo'));
+const TruthOrDare = lazy(() => import('./pages/TruthOrDare'));
 
 export default function App() {
   const { session } = useAuth();
@@ -85,6 +86,7 @@ export default function App() {
             <Route path="/games/sudoku" element={<Suspense fallback={<main role="status">Opening Sudoku...</main>}><Sudoku /></Suspense>} />
             <Route path="/games/heart-and-hollow" element={<Suspense fallback={<main role="status">Opening Heart &amp; Hollow...</main>}><HeartAndHollow /></Suspense>} />
             <Route path="/games/ludo" element={<Suspense fallback={<main role="status">Opening Ludo...</main>}><Ludo /></Suspense>} />
+            <Route path="/games/truth-or-dare" element={<Suspense fallback={<main role="status">Opening Truth or Dare...</main>}><TruthOrDare /></Suspense>} />
           </Route>
         </Routes>
       </div>

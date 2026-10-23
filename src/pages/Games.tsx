@@ -10,6 +10,15 @@ export default function Games() {
       </header>
       <section className="game-library-list" aria-label="Available games">
         <article className="game-library-item">
+          <div className="game-library-mark truth-dare-library-mark" aria-hidden="true">✦</div>
+          <div className="game-library-copy">
+            <p className="games-eyebrow">Two players · Realtime</p>
+            <h2>Truth or Dare, with a twist</h2>
+            <p>The bottle picks the player, then a gentle random prompt.</p>
+          </div>
+          <Link className="game-launch" to="/games/truth-or-dare">Play together</Link>
+        </article>
+        <article className="game-library-item">
           <div className="game-library-mark" aria-hidden="true">9</div>
           <div className="game-library-copy">
             <p className="games-eyebrow">Solo · Saved progress</p>
