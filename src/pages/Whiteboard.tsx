@@ -14,7 +14,6 @@ type StoredOperation = {
   op: CanvasOperation;
   created_at: string;
 };
-type OperationControl = { target_operation_id: string; is_undone: boolean };
 type PendingOperation = { id: string; op: CanvasOperation };
 type ActiveStroke = StrokeOperation;
 
@@ -67,7 +66,6 @@ export default function Whiteboard() {
   const [boardId, setBoardId] = useState<string | null>(null);
   const [spaceName, setSpaceName] = useState('Our Whiteboard');
   const [operations, setOperations] = useState<StoredOperation[]>([]);
-  const [undoneOperationIds, setUndoneOperationIds] = useState<Set<string>>(() => new Set());
   const [pending, setPending] = useState<PendingOperation[]>([]);
   const [activeStroke, setActiveStroke] = useState<ActiveStroke | null>(null);
   const [color, setColor] = useState('#773f91');
@@ -133,22 +131,6 @@ export default function Whiteboard() {
           ? current
           : orderOperations([...current, { ...row, op } as StoredOperation]));
       })
-      .on('postgres_changes', {
-        event: '*',
-        schema: 'public',
-        table: 'whiteboard_operation_controls',
-        filter: `board_id=eq.${boardId}`,
-      }, (payload) => {
-        const control = payload.new as OperationControl;
-        const targetId = control?.target_operation_id ?? (payload.old as OperationControl)?.target_operation_id;
-        if (!targetId) return;
-        setUndoneOperationIds((current) => {
-          const next = new Set(current);
-          if (payload.eventType === 'DELETE' || control.is_undone === false) next.delete(targetId);
-          else next.add(targetId);
-          return next;
-        });
-      })
       .subscribe((status) => {
         if (status === 'SUBSCRIBED') setConnection('connected');
         else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') setConnection('disconnected');
@@ -156,30 +138,23 @@ export default function Whiteboard() {
       });
 
     async function loadOperations() {
-      const [operationResult, controlResult] = await Promise.all([
-        client.from('whiteboard_operations')
-          .select('id,board_id,author,op,created_at')
-          .eq('board_id', boardId)
-          .order('created_at', { ascending: false })
-          .order('id', { ascending: false })
-          .limit(MAX_LOADED_OPERATIONS),
-        client.from('whiteboard_operation_controls')
-          .select('target_operation_id,is_undone')
-          .eq('board_id', boardId),
-      ]);
+      const { data, error: loadError } = await client
+        .from('whiteboard_operations')
+        .select('id,board_id,author,op,created_at')
+        .eq('board_id', boardId)
+        .order('created_at', { ascending: false })
+        .order('id', { ascending: false })
+        .limit(MAX_LOADED_OPERATIONS);
 
       if (!active) return;
-      if (operationResult.error || controlResult.error) {
-        setError(operationResult.error?.message ?? controlResult.error?.message ?? 'Could not load board history.');
+      if (loadError) {
+        setError(loadError.message);
       } else {
-        const rows = (operationResult.data ?? []).flatMap((row) => {
+        const rows = (data ?? []).flatMap((row) => {
           const op = readOperation(row.op);
           return op ? [{ ...row, op } as StoredOperation] : [];
         }).reverse();
         setOperations((current) => orderOperations([...rows, ...current.filter((item) => !rows.some((row) => row.id === item.id))]));
-        setUndoneOperationIds(new Set((controlResult.data ?? [])
-          .filter((control) => control.is_undone)
-          .map((control) => control.target_operation_id)));
         setError(null);
       }
       setLoading(false);
@@ -209,7 +184,6 @@ export default function Whiteboard() {
 
     let visible: StoredOperation[] = [];
     for (const item of operations) {
-      if (undoneOperationIds.has(item.id)) continue;
       if (item.op.type === 'clear') visible = [];
       else visible.push(item);
     }
@@ -223,7 +197,7 @@ export default function Whiteboard() {
       } else drawStroke(context, item.op, bounds.width, bounds.height, true);
     }
     if (activeStroke) drawStroke(context, activeStroke, bounds.width, bounds.height);
-  }, [operations, undoneOperationIds, pending, activeStroke]);
+  }, [operations, pending, activeStroke]);
 
   useEffect(() => {
     redraw();
@@ -253,9 +227,6 @@ export default function Whiteboard() {
       if (op) setOperations((current) => current.some((item) => item.id === stored.id)
         ? current
         : orderOperations([...current, { ...stored, op } as StoredOperation]));
-      if (operation.type === 'stroke' || operation.type === 'erase' || operation.type === 'clear') {
-        setUndoneOperationIds(new Set());
-      }
       setNotice('Drawing saved.');
     }
     setSaving(false);
@@ -283,9 +254,6 @@ export default function Whiteboard() {
       if (op) setOperations((current) => current.some((existing) => existing.id === stored.id)
         ? current
         : orderOperations([...current, { ...stored, op } as StoredOperation]));
-      if (item.op.type === 'stroke' || item.op.type === 'erase' || item.op.type === 'clear') {
-        setUndoneOperationIds(new Set());
-      }
       setPending((current) => current.filter((pendingItem) => pendingItem.id !== item.id));
     }
     setSaving(false);
@@ -323,30 +291,8 @@ export default function Whiteboard() {
   }
 
   async function handleClear() {
-    if (!window.confirm('Clear the shared whiteboard for both of you? You can undo this afterward.')) return;
+    if (!window.confirm('Clear the shared whiteboard for both of you? This cannot be undone.')) return;
     await persistOperation({ type: 'clear' });
-  }
-
-  async function toggleOperationHistory(redo: boolean) {
-    if (!supabase || !boardId) return;
-    setSaving(true);
-    setError(null);
-    const { data, error: historyError } = await supabase.rpc('toggle_whiteboard_operation', {
-      p_board_id: boardId,
-      p_redo: redo,
-    });
-    if (historyError) setError(historyError.message);
-    else {
-      const targetId = data as string;
-      setUndoneOperationIds((current) => {
-        const next = new Set(current);
-        if (redo) next.delete(targetId);
-        else next.add(targetId);
-        return next;
-      });
-      setNotice(redo ? 'Last action restored.' : 'Last action undone.');
-    }
-    setSaving(false);
   }
 
   function handleExport() {
@@ -382,10 +328,6 @@ export default function Whiteboard() {
             <div className="whiteboard-tool-toggle" role="group" aria-label="Drawing tool">
               <button type="button" aria-pressed={tool === 'pen'} onClick={() => setTool('pen')}>Pen</button>
               <button type="button" aria-pressed={tool === 'eraser'} onClick={() => setTool('eraser')}>Eraser</button>
-            </div>
-            <div className="whiteboard-history-tools" role="group" aria-label="Drawing history">
-              <button type="button" disabled={saving || pending.length > 0 || connection !== 'connected' || !operations.some((operation) => !undoneOperationIds.has(operation.id))} onClick={() => void toggleOperationHistory(false)}>Undo</button>
-              <button type="button" disabled={saving || pending.length > 0 || connection !== 'connected' || undoneOperationIds.size === 0} onClick={() => void toggleOperationHistory(true)}>Redo</button>
             </div>
             <label>Color <input type="color" disabled={tool === 'eraser'} value={color} onChange={(event) => setColor(event.target.value)} /></label>
             <label>Brush <input aria-label="Brush size" type="range" min="1" max="32" value={brushSize} onChange={(event) => setBrushSize(Number(event.target.value))} /></label>
