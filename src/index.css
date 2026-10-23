@@ -1300,6 +1300,112 @@ label {
   color: var(--muted);
 }
 
+.companion-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.room-presence {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+}
+
+.room-presence-person {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.room-presence-person > span:last-child {
+  display: grid;
+  gap: 1px;
+}
+
+.room-presence-person small {
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.room-presence-dot {
+  width: 9px;
+  height: 9px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: var(--border);
+}
+
+.room-presence-dot.is-online {
+  background: var(--secondary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--secondary) 20%, transparent);
+}
+
+.room-ambience {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 14px;
+  padding: 16px 18px;
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--accent);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--surface) 88%, var(--primary));
+  transition: background-color 180ms ease, border-color 180ms ease;
+}
+
+.room-ambience[data-ambience="rain"] {
+  border-left-color: var(--secondary);
+  background: color-mix(in srgb, var(--surface) 84%, var(--secondary));
+}
+
+.room-ambience[data-ambience="garden"] {
+  border-left-color: color-mix(in srgb, var(--secondary) 58%, #64865d);
+  background: color-mix(in srgb, var(--surface) 84%, #91a77d);
+}
+
+.room-ambience[data-ambience="starlight"] {
+  border-left-color: var(--accent);
+  background: color-mix(in srgb, var(--surface) 80%, var(--primary));
+}
+
+.room-ambience h2,
+.room-ambience p {
+  margin: 0;
+}
+
+.room-ambience > div:first-child > p:last-child {
+  margin-top: 4px;
+  color: var(--muted);
+}
+
+.room-ambience-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--bg) 85%, transparent);
+}
+
+.room-ambience-options button {
+  padding: 7px 10px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+
+.room-ambience-options button[aria-pressed="true"] {
+  border-color: var(--border);
+  background: var(--surface);
+  color: var(--accent);
+}
+
 .focus-session-section {
   display: grid;
   gap: 18px;
@@ -3250,6 +3356,24 @@ button.playing-card:not(:disabled):hover {
     min-height: calc(100vh - 56px);
     margin: 12px auto;
     padding: 0 8px;
+  }
+
+  .companion-header {
+    flex-direction: column;
+  }
+
+  .room-ambience {
+    align-items: stretch;
+    padding: 14px;
+  }
+
+  .room-ambience-options {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .room-ambience-options button {
+    min-width: 0;
   }
 
   .task-form {

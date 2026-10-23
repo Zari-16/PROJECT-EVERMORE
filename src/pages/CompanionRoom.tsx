@@ -8,6 +8,16 @@ type Member = {
   member_id: string;
   member_display_name: string | null;
 };
+type RoomPresence = {
+  member_id: string;
+  member_display_name: string;
+  presence_status: 'here' | 'away';
+  is_online: boolean;
+  last_seen_at: string | null;
+  ambience: RoomAmbience;
+  ambience_updated_by: string;
+};
+type RoomAmbience = 'quiet' | 'rain' | 'garden' | 'starlight';
 
 type TaskStatus = 'not_started' | 'in_progress' | 'completed' | 'cancelled';
 type TaskPriority = 'low' | 'normal' | 'high';
@@ -71,6 +81,9 @@ function formatClock(seconds: number) {
 export default function CompanionRoom() {
   const { session } = useAuth();
   const [members, setMembers] = useState<Member[]>([]);
+  const [roomPresence, setRoomPresence] = useState<RoomPresence[]>([]);
+  const [ambience, setAmbience] = useState<RoomAmbience>('quiet');
+  const [ambienceSaving, setAmbienceSaving] = useState(false);
   const [tasks, setTasks] = useState<SharedTask[]>([]);
   const [focusSessions, setFocusSessions] = useState<FocusSession[]>([]);
   const [focusTitle, setFocusTitle] = useState('Focus together');
@@ -127,6 +140,19 @@ export default function CompanionRoom() {
     setFocusLoading(false);
   }, [spaceId]);
 
+  const syncRoomPresence = useCallback(async (presenceStatus: 'here' | 'away' | null = null) => {
+    if (!supabase || !spaceId) return;
+    const { data, error: presenceError } = await supabase.rpc('sync_companion_room', {
+      p_presence_status: presenceStatus,
+    });
+    if (presenceError) setError(presenceError.message);
+    else {
+      const rows = (Array.isArray(data) ? data : []) as RoomPresence[];
+      setRoomPresence(rows);
+      if (rows[0]?.ambience) setAmbience(rows[0].ambience);
+    }
+  }, [spaceId]);
+
   useEffect(() => {
     if (!supabase || !session) {
       setError('Sign in to open the Companion Room.');
@@ -164,6 +190,14 @@ export default function CompanionRoom() {
         event: '*', schema: 'public', table: 'focus_sessions',
         filter: `space_id=eq.${spaceId}`,
       }, () => { void loadFocusSessions(); })
+      .on('postgres_changes', {
+        event: '*', schema: 'public', table: 'companion_room_presence',
+        filter: `space_id=eq.${spaceId}`,
+      }, () => { void syncRoomPresence(); })
+      .on('postgres_changes', {
+        event: '*', schema: 'public', table: 'companion_room_settings',
+        filter: `space_id=eq.${spaceId}`,
+      }, () => { void syncRoomPresence(); })
       .subscribe();
 
     void loadTasks().then(() => { if (active) setLoading(false); });
@@ -172,7 +206,25 @@ export default function CompanionRoom() {
       active = false;
       void client.removeChannel(channel);
     };
-  }, [spaceId, loadTasks, loadFocusSessions]);
+  }, [spaceId, loadTasks, loadFocusSessions, syncRoomPresence]);
+
+  useEffect(() => {
+    if (!spaceId) return;
+    const heartbeat = window.setInterval(() => { void syncRoomPresence(); }, 30_000);
+    const updateVisibility = () => {
+      void syncRoomPresence(document.visibilityState === 'visible' ? 'here' : 'away');
+    };
+    const markAway = () => { void syncRoomPresence('away'); };
+    document.addEventListener('visibilitychange', updateVisibility);
+    window.addEventListener('pagehide', markAway);
+    void syncRoomPresence('here');
+    return () => {
+      window.clearInterval(heartbeat);
+      document.removeEventListener('visibilitychange', updateVisibility);
+      window.removeEventListener('pagehide', markAway);
+      void syncRoomPresence('away');
+    };
+  }, [spaceId, syncRoomPresence]);
 
   const activeFocusSession = focusSessions.find((item) => item.status === 'running' || item.status === 'paused') ?? null;
 
@@ -239,6 +291,22 @@ export default function CompanionRoom() {
     const { error: toggleError } = await supabase.rpc(rpcName, { p_session_id: activeFocusSession.session_id });
     if (toggleError) setError(toggleError.message);
     else await loadFocusSessions();
+  }
+
+  async function changeAmbience(nextAmbience: RoomAmbience) {
+    if (!supabase || nextAmbience === ambience) return;
+    setAmbienceSaving(true);
+    setError(null);
+    const { error: ambienceError } = await supabase.rpc('set_companion_room_ambience', {
+      p_ambience: nextAmbience,
+    });
+    if (ambienceError) setError(ambienceError.message);
+    else {
+      setAmbience(nextAmbience);
+      setNotice('Room atmosphere updated for both of you.');
+      await syncRoomPresence();
+    }
+    setAmbienceSaving(false);
   }
 
   function updateForm<K extends keyof TaskForm>(key: K, value: TaskForm[K]) {
@@ -336,13 +404,38 @@ export default function CompanionRoom() {
             <h1>Companion Room</h1>
             <p>One shared list for plans, little goals, and things to do for each other.</p>
           </div>
-          <span role="status">{members.length > 1 ? 'Paired' : 'Waiting for your partner'}</span>
+          <div className="room-presence" aria-label="Companion Room presence">
+            {roomPresence.map((person) => {
+              const isMe = person.member_id === session?.user.id;
+              return (
+                <div className="room-presence-person" key={person.member_id}>
+                  <span className={`room-presence-dot${person.is_online ? ' is-online' : ''}`} aria-hidden="true" />
+                  <span><strong>{isMe ? 'You' : person.member_display_name || 'Partner'}</strong><small>{person.is_online ? 'Here now' : 'Away'}</small></span>
+                </div>
+              );
+            })}
+          </div>
         </header>
 
         {!spaceId ? (
           <p>Pair your account to start a shared list. <Link to="/pairing">Go to Pairing</Link></p>
         ) : (
           <>
+            <section className="room-ambience" data-ambience={ambience} aria-label="Shared room atmosphere">
+              <div>
+                <p className="companion-eyebrow">Room atmosphere</p>
+                <h2>{ambience === 'quiet' ? 'A quiet corner' : ambience === 'rain' ? 'Rain on the window' : ambience === 'garden' ? 'A garden afternoon' : 'Under the stars'}</h2>
+                <p>Choose a shared visual mood for the room.</p>
+              </div>
+              <div className="room-ambience-options" role="group" aria-label="Choose room atmosphere">
+                {([
+                  ['quiet', 'Quiet'], ['rain', 'Rain'], ['garden', 'Garden'], ['starlight', 'Starlight'],
+                ] as [RoomAmbience, string][]).map(([value, label]) => (
+                  <button key={value} type="button" aria-pressed={ambience === value} disabled={ambienceSaving} onClick={() => void changeAmbience(value)}>{label}</button>
+                ))}
+              </div>
+            </section>
+
             <section className="focus-session-section" aria-live="polite">
               <header className="focus-session-header">
                 <div>
