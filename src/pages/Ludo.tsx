@@ -78,6 +78,8 @@ export default function Ludo() {
   const [state, setState] = useState<LudoPayload | null>(null);
   const [busy, setBusy] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [isRolling, setIsRolling] = useState(false);
+  const [animatedRoll, setAnimatedRoll] = useState(1);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
 
@@ -85,7 +87,11 @@ export default function Ludo() {
     if (!supabase) return;
     const { data, error: stateError } = await supabase.rpc('get_ludo_state');
     if (stateError) setError(stateError.message);
-    else setState(data as LudoPayload);
+    else {
+      const payload = data as LudoPayload;
+      setState(payload);
+      setAnimatedRoll(payload.game?.game_state.last_roll ?? 1);
+    }
     setLoading(false);
   }, []);
 
@@ -123,6 +129,14 @@ export default function Ludo() {
       .subscribe();
     return () => { void client.removeChannel(channel); };
   }, [spaceId, loadState]);
+
+  useEffect(() => {
+    if (!isRolling) return;
+    const timer = window.setInterval(() => {
+      setAnimatedRoll((current) => current === 6 ? 1 : current + 1);
+    }, 90);
+    return () => window.clearInterval(timer);
+  }, [isRolling]);
 
   const game = state?.game?.status === 'active' ? state.game : null;
   const players = game?.game_state.players ?? [];
@@ -162,12 +176,19 @@ export default function Ludo() {
   async function rollDice() {
     if (!supabase) return;
     setBusy(true);
+    setIsRolling(true);
+    setAnimatedRoll(1);
     setError(null);
     setNotice(null);
     const { data, error: rollError } = await supabase.rpc('roll_ludo_dice');
-    if (rollError) setError(rollError.message);
+    if (rollError) {
+      setError(rollError.message);
+      setIsRolling(false);
+    }
     else {
       const next = data as LudoGameState;
+      if (next.last_roll !== null) setAnimatedRoll(next.last_roll);
+      setIsRolling(false);
       setNotice(next.last_action || `You rolled ${next.last_roll}.`);
       await loadState();
     }
@@ -228,6 +249,10 @@ export default function Ludo() {
           <>
             <div className="ludo-game-bar">
               <p role="status">{myTurn ? 'Your turn' : 'Partner turn'}{dice !== null ? ` · Dice ${dice}` : ''}{game.game_state.last_action ? ` · ${game.game_state.last_action}` : ''}</p>
+              <div className={`ludo-dice-display${isRolling ? ' is-rolling' : ''}`} aria-live="polite">
+                <span className="ludo-die-value">{isRolling ? animatedRoll : dice ?? (game.game_state.last_roll ?? '·')}</span>
+                <span>{isRolling ? 'Rolling' : dice !== null ? 'Rolled' : game.game_state.last_roll !== null ? 'Last roll' : 'Dice'}</span>
+              </div>
               {myTurn && dice === null && <button type="button" disabled={busy} onClick={() => void rollDice()}>Roll dice</button>}
             </div>
 

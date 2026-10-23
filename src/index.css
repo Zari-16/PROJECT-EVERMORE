@@ -1841,8 +1841,40 @@ button.playing-card:not(:disabled):hover {
   font-weight: 600;
 }
 
+.ludo-dice-display {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: var(--muted);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.ludo-die-value {
+  display: grid;
+  width: 42px;
+  aspect-ratio: 1;
+  place-items: center;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: var(--bg);
+  box-shadow: 0 3px 10px rgba(28, 20, 38, 0.12);
+  color: var(--accent);
+  font-size: 1.45rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.ludo-dice-display.is-rolling .ludo-die-value {
+  animation: ludo-dice-roll 120ms ease-in-out infinite alternate;
+}
+
+@keyframes ludo-dice-roll {
+  from { transform: rotate(-8deg) translateY(-2px); }
+  to { transform: rotate(8deg) translateY(2px); }
+}
+
 .ludo-board-wrap {
-  width: min(100%, 680px);
+  width: min(100%, 600px);
   margin-inline: auto;
   padding: 12px;
   border: 1px solid var(--border);
