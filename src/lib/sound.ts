@@ -8,21 +8,34 @@ export const SOUND_FILES = {
   alert: 'alert',
   whiteboardUndo: 'whiteboard-undo',
   whiteboardClear: 'whiteboard-clear',
+  background: 'background',
 } as const;
 
 export type SoundName = keyof typeof SOUND_FILES;
-export type SoundSettings = { volume: number; muted: boolean };
+export type SoundSettings = {
+  volume: number;
+  muted: boolean;
+  backgroundEnabled: boolean;
+  backgroundVolume: number;
+};
 
 const SOUND_DIR = `${import.meta.env.BASE_URL}sound/`;
 const EXTENSIONS = ['mp3', 'wav', 'ogg'];
 const STORAGE_KEY = 'evermore:sound-settings';
-const DEFAULT_SETTINGS: SoundSettings = { volume: 0.7, muted: false };
+const DEFAULT_SETTINGS: SoundSettings = { volume: 0.7, muted: false, backgroundEnabled: false, backgroundVolume: 0.25 };
+
+const clampVolume = (value: unknown, fallback: number) =>
+  typeof value === 'number' ? Math.min(1, Math.max(0, value)) : fallback;
 
 function readSettings(): SoundSettings {
   try {
     const stored = JSON.parse(window.localStorage.getItem(STORAGE_KEY) ?? 'null') as Partial<SoundSettings> | null;
-    const volume = typeof stored?.volume === 'number' ? Math.min(1, Math.max(0, stored.volume)) : DEFAULT_SETTINGS.volume;
-    return { volume, muted: stored?.muted === true };
+    return {
+      volume: clampVolume(stored?.volume, DEFAULT_SETTINGS.volume),
+      muted: stored?.muted === true,
+      backgroundEnabled: stored?.backgroundEnabled === true,
+      backgroundVolume: clampVolume(stored?.backgroundVolume, DEFAULT_SETTINGS.backgroundVolume),
+    };
   } catch {
     return DEFAULT_SETTINGS;
   }
@@ -30,6 +43,8 @@ function readSettings(): SoundSettings {
 
 let settings = readSettings();
 const listeners = new Set<() => void>();
+
+export const getSoundSettings = () => settings;
 
 export function updateSoundSettings(next: Partial<SoundSettings>) {
   settings = { ...settings, ...next };
@@ -79,6 +94,8 @@ function resolveSource(name: SoundName) {
   }
   return source;
 }
+
+export const getSoundUrl = resolveSource;
 
 export async function playSound(name: SoundName) {
   if (typeof Audio === 'undefined' || settings.muted || settings.volume === 0) return;

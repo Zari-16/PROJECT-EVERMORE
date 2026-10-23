@@ -427,6 +427,26 @@ label {
   width: 100%;
 }
 
+.sound-preferences {
+  display: grid;
+  gap: 14px;
+  margin-top: 16px;
+}
+
+.sound-preferences h2,
+.sound-preferences p {
+  margin: 0;
+}
+
+.sound-preferences button {
+  justify-self: start;
+}
+
+.sound-preferences-note {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
 .notification-trigger {
   display: flex;
   align-items: center;

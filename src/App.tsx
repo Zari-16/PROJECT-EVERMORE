@@ -14,6 +14,7 @@ import Memories from './pages/Memories';
 import CompanionRoom from './pages/CompanionRoom';
 import FantasyAtmosphere from './components/FantasyAtmosphere';
 import SoundControl from './components/SoundControl';
+import BackgroundMusic from './components/BackgroundMusic';
 import Games from './pages/Games';
 
 const Sudoku = lazy(() => import('./pages/Sudoku'));
@@ -40,6 +41,7 @@ export default function App() {
   return (
     <div className="app-shell">
       <FantasyAtmosphere />
+      {session && <BackgroundMusic />}
       <header className="site-header">
         <Link className="site-brand" to="/" aria-label="Project Evermore home">
           <span className="site-brand-mark" aria-hidden="true" />

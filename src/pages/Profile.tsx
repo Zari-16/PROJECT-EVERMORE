@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { useAuth } from '../components/AuthProvider';
 import { supabase } from '../lib/supabase';
+import SoundPreferences from '../components/SoundPreferences';
 
 export default function Profile() {
   const { session } = useAuth();
@@ -103,6 +104,7 @@ export default function Profile() {
         {error && <p role="alert">{error}</p>}
         {notice ? <p role="status">{notice}</p> : profileExists && !hasChanges && <p role="status">Your profile is up to date.</p>}
       </section>
+      <SoundPreferences />
     </main>
   );
 }
