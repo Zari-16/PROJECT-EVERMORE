@@ -2,11 +2,14 @@ import { useCallback, useEffect, useRef, useState, type PointerEvent } from 'rea
 import { Link } from 'react-router-dom';
 import { useAuth } from '../components/AuthProvider';
 import { supabase } from '../lib/supabase';
+import { playSound } from '../lib/sound';
 
 type Point = [number, number];
 type StrokeOperation = { type: 'stroke' | 'erase'; points: Point[]; color: string; width: number };
 type ClearOperation = { type: 'clear' };
-type CanvasOperation = StrokeOperation | ClearOperation;
+type UndoOperation = { type: 'undo'; target: string };
+type DrawOperation = StrokeOperation | ClearOperation;
+type CanvasOperation = DrawOperation | UndoOperation;
 type StoredOperation = {
   id: string;
   board_id: string;
@@ -14,7 +17,7 @@ type StoredOperation = {
   op: CanvasOperation;
   created_at: string;
 };
-type PendingOperation = { id: string; op: CanvasOperation };
+type PendingOperation = { id: string; op: DrawOperation };
 type ActiveStroke = StrokeOperation;
 
 const MAX_LOADED_OPERATIONS = 1000;
@@ -23,6 +26,7 @@ function readOperation(value: unknown): CanvasOperation | null {
   if (!value || typeof value !== 'object') return null;
   const operation = value as Record<string, unknown>;
   if (operation.type === 'clear') return { type: 'clear' };
+  if (operation.type === 'undo') return typeof operation.target === 'string' ? { type: 'undo', target: operation.target } : null;
   if (!['stroke', 'erase'].includes(String(operation.type)) || !Array.isArray(operation.points)) return null;
   if (typeof operation.color !== 'string' || !/^#[0-9a-f]{6}$/i.test(operation.color)) return null;
   if (typeof operation.width !== 'number' || operation.width < 0.5 || operation.width > 64) return null;
@@ -41,6 +45,11 @@ function orderOperations(items: StoredOperation[]) {
   return [...items].sort((left, right) =>
     left.created_at.localeCompare(right.created_at) || left.id.localeCompare(right.id),
   );
+}
+
+function findUndoTarget(items: StoredOperation[], userId: string | undefined) {
+  const undone = new Set(items.flatMap((item) => item.op.type === 'undo' ? [item.op.target] : []));
+  return [...items].reverse().find((item) => item.author === userId && item.op.type !== 'undo' && !undone.has(item.id));
 }
 
 function drawStroke(context: CanvasRenderingContext2D, stroke: StrokeOperation, width: number, height: number, pending = false) {
@@ -183,12 +192,14 @@ export default function Whiteboard() {
     context.fillRect(0, 0, bounds.width, bounds.height);
 
     let visible: StoredOperation[] = [];
+    const undone = new Set(operations.flatMap((item) => item.op.type === 'undo' ? [item.op.target] : []));
     for (const item of operations) {
+      if (item.op.type === 'undo' || undone.has(item.id)) continue;
       if (item.op.type === 'clear') visible = [];
       else visible.push(item);
     }
     for (const item of visible) {
-      if (item.op.type !== 'clear') drawStroke(context, item.op, bounds.width, bounds.height);
+      if (item.op.type === 'stroke' || item.op.type === 'erase') drawStroke(context, item.op, bounds.width, bounds.height);
     }
     for (const item of pending) {
       if (item.op.type === 'clear') {
@@ -206,7 +217,7 @@ export default function Whiteboard() {
     return () => observer.disconnect();
   }, [redraw]);
 
-  async function persistOperation(operation: CanvasOperation) {
+  async function persistOperation(operation: DrawOperation) {
     if (!supabase || !boardId || !session) return;
 
     setSaving(true);
@@ -291,8 +302,36 @@ export default function Whiteboard() {
   }
 
   async function handleClear() {
-    if (!window.confirm('Clear the shared whiteboard for both of you? This cannot be undone.')) return;
+    if (!window.confirm('Clear the shared whiteboard for both of you? You can undo your clear afterwards.')) return;
     await persistOperation({ type: 'clear' });
+    void playSound('whiteboardClear');
+  }
+
+  async function handleUndo() {
+    if (!supabase || !boardId || !session) return;
+    const target = findUndoTarget(operations, session.user.id);
+    if (!target) return;
+
+    setSaving(true);
+    setError(null);
+    setNotice(null);
+    const { data, error: undoError } = await supabase
+      .from('whiteboard_operations')
+      .insert({ board_id: boardId, author: session.user.id, op: { type: 'undo', target: target.id } })
+      .select('id,board_id,author,op,created_at')
+      .single();
+
+    if (undoError) setError(`Could not undo. ${undoError.message}`);
+    else {
+      const stored = data as Omit<StoredOperation, 'op'> & { op: unknown };
+      const op = readOperation(stored.op);
+      if (op) setOperations((current) => current.some((item) => item.id === stored.id)
+        ? current
+        : orderOperations([...current, { ...stored, op } as StoredOperation]));
+      setNotice('Undid your last action.');
+      void playSound('whiteboardUndo');
+    }
+    setSaving(false);
   }
 
   function handleExport() {
@@ -331,6 +370,14 @@ export default function Whiteboard() {
             </div>
             <label>Color <input type="color" disabled={tool === 'eraser'} value={color} onChange={(event) => setColor(event.target.value)} /></label>
             <label>Brush <input aria-label="Brush size" type="range" min="1" max="32" value={brushSize} onChange={(event) => setBrushSize(Number(event.target.value))} /></label>
+            <button
+              type="button"
+              title="Undo your last action"
+              disabled={saving || pending.length > 0 || connection !== 'connected' || !findUndoTarget(operations, session?.user.id)}
+              onClick={() => void handleUndo()}
+            >
+              Undo
+            </button>
             <button type="button" disabled={saving || pending.length > 0 || connection !== 'connected'} onClick={() => void handleClear()}>Clear</button>
             <button type="button" onClick={handleExport}>Export PNG</button>
           </div>

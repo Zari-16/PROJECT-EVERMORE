@@ -385,6 +385,48 @@ label {
   z-index: 30;
 }
 
+.sound-control {
+  position: relative;
+  z-index: 30;
+}
+
+.sound-trigger {
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+}
+
+.sound-panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  display: grid;
+  width: min(260px, calc(100vw - 24px));
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  box-shadow: 0 12px 30px rgba(28, 20, 38, 0.16);
+}
+
+.sound-mute,
+.sound-volume {
+  display: grid;
+  gap: 6px;
+}
+
+.sound-mute {
+  grid-auto-flow: column;
+  justify-content: start;
+  align-items: center;
+}
+
+.sound-volume input {
+  width: 100%;
+}
+
 .notification-trigger {
   display: flex;
   align-items: center;
@@ -761,6 +803,57 @@ label {
 .chat-message-own {
   align-self: flex-end;
   border-color: color-mix(in srgb, var(--accent) 35%, var(--border));
+}
+
+.chat-message.is-highlighted {
+  animation: chat-ping 1.6s ease-out;
+}
+
+@keyframes chat-ping {
+  0%, 40% { box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 55%, transparent); }
+  100% { box-shadow: 0 0 0 3px transparent; }
+}
+
+.chat-quote {
+  display: grid;
+  width: 100%;
+  gap: 2px;
+  margin: 6px 0;
+  padding: 6px 10px;
+  border: 0;
+  border-left: 3px solid var(--accent);
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--surface) 80%, var(--primary));
+  color: var(--text);
+  text-align: left;
+}
+
+.chat-quote span {
+  display: -webkit-box;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 0.85rem;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.chat-reply-bar {
+  display: flex;
+  grid-column: 1 / -1;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 6px 10px;
+  border-left: 3px solid var(--accent);
+  background: color-mix(in srgb, var(--surface) 80%, var(--primary));
+  font-size: 0.88rem;
+}
+
+.chat-reply-bar span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .chat-message > header,

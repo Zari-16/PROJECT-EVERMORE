@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from './AuthProvider';
 import { supabase } from '../lib/supabase';
+import { playSound } from '../lib/sound';
 
 type NotificationItem = {
   id: string;
@@ -45,7 +46,11 @@ export default function NotificationCenter() {
     const channel = client
       .channel(`notifications:${session.user.id}`)
       .on('postgres_changes', {
-        event: '*', schema: 'public', table: 'evermore_notifications',
+        event: 'INSERT', schema: 'public', table: 'evermore_notifications',
+        filter: `user_id=eq.${session.user.id}`,
+      }, () => { void playSound('alert'); void loadNotifications(); })
+      .on('postgres_changes', {
+        event: 'UPDATE', schema: 'public', table: 'evermore_notifications',
         filter: `user_id=eq.${session.user.id}`,
       }, () => { void loadNotifications(); })
       .subscribe();

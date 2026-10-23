@@ -2,6 +2,7 @@ import { useEffect, useLayoutEffect, useRef, useState, type FormEvent } from 're
 import { Link } from 'react-router-dom';
 import { useAuth } from '../components/AuthProvider';
 import { supabase } from '../lib/supabase';
+import { playSound } from '../lib/sound';
 
 type ChatMessage = {
   id: string;
@@ -11,6 +12,7 @@ type ChatMessage = {
   created_at: string;
   edited_at: string | null;
   deleted: boolean;
+  reply_to: string | null;
 };
 
 type SpaceMember = {
@@ -21,7 +23,7 @@ type SpaceMember = {
 };
 
 const PAGE_SIZE = 40;
-const MESSAGE_COLUMNS = 'id,space_id,author,content,created_at,edited_at,deleted';
+const MESSAGE_COLUMNS = 'id,space_id,author,content,created_at,edited_at,deleted,reply_to';
 
 function mergeMessages(current: ChatMessage[], incoming: ChatMessage[]) {
   const byId = new Map(current.map((message) => [message.id, message]));
@@ -51,6 +53,10 @@ export default function Chat() {
   const [connection, setConnection] = useState<'connecting' | 'connected' | 'disconnected'>('connecting');
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const [replyingTo, setReplyingTo] = useState<ChatMessage | null>(null);
+  const [highlightedId, setHighlightedId] = useState<string | null>(null);
+  const messagesRef = useRef<ChatMessage[]>([]);
+  messagesRef.current = messages;
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const didInitialScrollRef = useRef(false);
   const followLatestRef = useRef(true);
@@ -107,6 +113,7 @@ export default function Chat() {
     setLoading(true);
     let active = true;
     const client = supabase;
+    const currentUserId = session?.user.id;
     const channel = client
       .channel(`messages:${spaceId}`)
       .on('postgres_changes', {
@@ -116,7 +123,12 @@ export default function Chat() {
         filter: `space_id=eq.${spaceId}`,
       }, (payload) => {
         const message = payload.new as ChatMessage;
-        if (message?.id) setMessages((current) => mergeMessages(current, [message]));
+        if (!message?.id) return;
+        if (payload.eventType === 'INSERT' && message.author !== currentUserId) {
+          const parent = message.reply_to ? messagesRef.current.find((item) => item.id === message.reply_to) : undefined;
+          void playSound(parent?.author === currentUserId ? 'replyPing' : 'messageReceived');
+        }
+        setMessages((current) => mergeMessages(current, [message]));
       })
       .subscribe((status) => {
         if (status === 'SUBSCRIBED') setConnection('connected');
@@ -193,7 +205,7 @@ export default function Chat() {
     setNotice(null);
     const { data, error: sendError } = await supabase
       .from('messages')
-      .insert({ space_id: spaceId, author: session.user.id, content })
+      .insert({ space_id: spaceId, author: session.user.id, content, reply_to: replyingTo?.id ?? null })
       .select(MESSAGE_COLUMNS)
       .single();
 
@@ -202,6 +214,8 @@ export default function Chat() {
       followLatestRef.current = true;
       setMessages((current) => mergeMessages(current, [data as ChatMessage]));
       setDraft('');
+      setReplyingTo(null);
+      void playSound('messageSent');
     }
     setSending(false);
   }
@@ -247,9 +261,22 @@ export default function Chat() {
     else setMessages((current) => mergeMessages(current, [data as ChatMessage]));
   }
 
+  function jumpToMessage(messageId: string) {
+    const element = document.getElementById(`chat-message-${messageId}`);
+    if (!element) {
+      setNotice('That message is older than what is loaded. Use Load older messages to find it.');
+      return;
+    }
+    followLatestRef.current = false;
+    element.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    setHighlightedId(messageId);
+    window.setTimeout(() => setHighlightedId(null), 1600);
+  }
+
   if (loading) return <main role="status">Loading chat...</main>;
 
   const memberNames = new Map(members.map((member) => [member.member_id, member.member_display_name || 'Evermore member']));
+  const authorLabel = (authorId: string) => authorId === session?.user.id ? 'You' : memberNames.get(authorId) || 'Partner';
 
   return (
     <main className="chat-page">
@@ -290,11 +317,24 @@ export default function Chat() {
               {messages.map((message) => {
                 const ownMessage = message.author === session?.user.id;
                 return (
-                  <article className={`chat-message ${ownMessage ? 'chat-message-own' : ''}`} key={message.id}>
+                  <article
+                    className={`chat-message ${ownMessage ? 'chat-message-own' : ''}${highlightedId === message.id ? ' is-highlighted' : ''}`}
+                    id={`chat-message-${message.id}`}
+                    key={message.id}
+                  >
                     <header>
-                      <strong>{ownMessage ? 'You' : memberNames.get(message.author) || 'Partner'}</strong>
+                      <strong>{authorLabel(message.author)}</strong>
                       <time dateTime={message.created_at}>{new Date(message.created_at).toLocaleString()}</time>
                     </header>
+                    {message.reply_to && (() => {
+                      const parent = messages.find((item) => item.id === message.reply_to);
+                      return (
+                        <button type="button" className="chat-quote" onClick={() => jumpToMessage(message.reply_to as string)}>
+                          <strong>{parent ? authorLabel(parent.author) : 'Earlier message'}</strong>
+                          <span>{parent ? (parent.deleted ? 'Message deleted' : parent.content) : 'Open to find the original'}</span>
+                        </button>
+                      );
+                    })()}
                     {message.deleted ? (
                       <p className="chat-deleted">Message deleted</p>
                     ) : editingId === message.id ? (
@@ -313,14 +353,21 @@ export default function Chat() {
                       <p>{message.content}</p>
                     )}
                     {!message.deleted && message.edited_at && <small>Edited</small>}
-                    {ownMessage && !message.deleted && editingId !== message.id && (
+                    {!message.deleted && editingId !== message.id && (
                       <footer>
-                        <button type="button" onClick={() => { setEditingId(message.id); setEditDraft(message.content ?? ''); }}>
-                          Edit
+                        <button type="button" onClick={() => { setReplyingTo(message); document.getElementById('chat-draft')?.focus(); }}>
+                          Reply
                         </button>
-                        <button type="button" onClick={() => void handleDelete(message.id)}>
-                          Delete for both
-                        </button>
+                        {ownMessage && (
+                          <>
+                            <button type="button" onClick={() => { setEditingId(message.id); setEditDraft(message.content ?? ''); }}>
+                              Edit
+                            </button>
+                            <button type="button" onClick={() => void handleDelete(message.id)}>
+                              Delete for both
+                            </button>
+                          </>
+                        )}
                       </footer>
                     )}
                   </article>
@@ -329,6 +376,12 @@ export default function Chat() {
             </div>
 
             <form className="chat-composer" onSubmit={handleSend}>
+              {replyingTo && (
+                <div className="chat-reply-bar">
+                  <span>Replying to <strong>{authorLabel(replyingTo.author)}</strong>: {replyingTo.content}</span>
+                  <button type="button" aria-label="Cancel reply" onClick={() => setReplyingTo(null)}>Cancel</button>
+                </div>
+              )}
               <label className="visually-hidden" htmlFor="chat-draft">Write a message</label>
               <textarea
                 id="chat-draft"

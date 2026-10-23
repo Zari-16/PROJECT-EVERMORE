@@ -7,17 +7,18 @@ import { useAuth } from './components/AuthProvider';
 import { supabase } from './lib/supabase';
 import Home from './pages/Home';
 import Pairing from './pages/Pairing';
-import Chat from './pages/Chat';
 import Profile from './pages/Profile';
-import Whiteboard from './pages/Whiteboard';
 import Questions from './pages/Questions';
 import Calendar from './pages/Calendar';
 import Memories from './pages/Memories';
 import CompanionRoom from './pages/CompanionRoom';
 import FantasyAtmosphere from './components/FantasyAtmosphere';
+import SoundControl from './components/SoundControl';
 import Games from './pages/Games';
 
 const Sudoku = lazy(() => import('./pages/Sudoku'));
+const Chat = lazy(() => import('./pages/Chat'));
+const Whiteboard = lazy(() => import('./pages/Whiteboard'));
 const HeartAndHollow = lazy(() => import('./pages/HeartAndHollow'));
 const Ludo = lazy(() => import('./pages/Ludo'));
 const TruthOrDare = lazy(() => import('./pages/TruthOrDare'));
@@ -69,7 +70,7 @@ export default function App() {
             </>
           )}
         </nav>
-        {session && <div className="site-header-actions"><Suspense fallback={null}><NotificationCenter /></Suspense><button className="site-signout" type="button" onClick={handleSignOut}>Sign out</button></div>}
+        {session && <div className="site-header-actions"><SoundControl /><Suspense fallback={null}><NotificationCenter /></Suspense><button className="site-signout" type="button" onClick={handleSignOut}>Sign out</button></div>}
       </header>
       {error && <p role="alert">{error}</p>}
       <div className="app-route-content">
@@ -80,8 +81,8 @@ export default function App() {
             <Route path="/" element={<Home />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/pairing" element={<Pairing />} />
-            <Route path="/chat" element={<Chat />} />
-            <Route path="/whiteboard" element={<Whiteboard />} />
+            <Route path="/chat" element={<Suspense fallback={<main role="status">Opening chat...</main>}><Chat /></Suspense>} />
+            <Route path="/whiteboard" element={<Suspense fallback={<main role="status">Opening the whiteboard...</main>}><Whiteboard /></Suspense>} />
             <Route path="/questions" element={<Questions />} />
             <Route path="/calendar" element={<Calendar />} />
             <Route path="/memories" element={<Memories />} />
