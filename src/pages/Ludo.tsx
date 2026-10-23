@@ -253,7 +253,13 @@ export default function Ludo() {
                 <span className="ludo-die-value">{isRolling ? animatedRoll : dice ?? (game.game_state.last_roll ?? '·')}</span>
                 <span>{isRolling ? 'Rolling' : dice !== null ? 'Rolled' : game.game_state.last_roll !== null ? 'Last roll' : 'Dice'}</span>
               </div>
-              {myTurn && dice === null && <button type="button" disabled={busy} onClick={() => void rollDice()}>Roll dice</button>}
+              <button
+                type="button"
+                disabled={busy || !myTurn || dice !== null}
+                onClick={() => void rollDice()}
+              >
+                {isRolling ? 'Rolling...' : dice !== null ? 'Move a token' : myTurn ? 'Roll dice' : 'Waiting for turn'}
+              </button>
             </div>
 
             <div className="ludo-board-wrap">
