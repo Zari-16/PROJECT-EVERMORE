@@ -7,6 +7,41 @@ create index if not exists messages_reply_to_idx
 
 grant insert (reply_to) on table public.messages to authenticated;
 
+-- Policies can't query their own table without recursing, so these checks bypass RLS.
+create or replace function public.evermore_reply_target_ok(p_reply_to uuid, p_space_id uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $function$
+  select p_reply_to is null or exists (
+    select 1 from public.messages as parent
+     where parent.id = p_reply_to and parent.space_id = p_space_id
+  );
+$function$;
+
+create or replace function public.evermore_can_undo_operation(p_target text, p_board_id uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $function$
+  select exists (
+    select 1 from public.whiteboard_operations as target
+     where target.id::text = p_target
+       and target.board_id = p_board_id
+       and target.author = (select auth.uid())
+       and target.op ->> 'type' <> 'undo'
+  );
+$function$;
+
+revoke all on function public.evermore_reply_target_ok(uuid, uuid) from public, anon;
+revoke all on function public.evermore_can_undo_operation(text, uuid) from public, anon;
+grant execute on function public.evermore_reply_target_ok(uuid, uuid) to authenticated;
+grant execute on function public.evermore_can_undo_operation(text, uuid) to authenticated;
+
 drop policy if exists messages_insert_paired_space on public.messages;
 create policy messages_insert_paired_space
   on public.messages for insert to authenticated
@@ -17,14 +52,7 @@ create policy messages_insert_paired_space
     and pg_catalog.char_length(pg_catalog.btrim(content)) between 1 and 4000
     and deleted = false
     and edited_at is null
-    and (
-      messages.reply_to is null
-      or exists (
-        select 1 from public.messages as parent
-         where parent.id = messages.reply_to
-           and parent.space_id = messages.space_id
-      )
-    )
+    and public.evermore_reply_target_ok(reply_to, space_id)
   );
 
 -- A reply to the recipient's own message gets a distinct alert title.
@@ -64,12 +92,6 @@ create policy whiteboard_operations_insert_member
     )
     and (
       op ->> 'type' <> 'undo'
-      or exists (
-        select 1 from public.whiteboard_operations as target
-         where target.id::text = whiteboard_operations.op ->> 'target'
-           and target.board_id = whiteboard_operations.board_id
-           and target.author = (select auth.uid())
-           and target.op ->> 'type' <> 'undo'
-      )
+      or public.evermore_can_undo_operation(op ->> 'target', board_id)
     )
   );
