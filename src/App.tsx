@@ -16,9 +16,10 @@ import Memories from './pages/Memories';
 import CompanionRoom from './pages/CompanionRoom';
 import FantasyAtmosphere from './components/FantasyAtmosphere';
 import Games from './pages/Games';
-import HeartAndHollow from './pages/HeartAndHollow';
 
 const Sudoku = lazy(() => import('./pages/Sudoku'));
+const HeartAndHollow = lazy(() => import('./pages/HeartAndHollow'));
+const Ludo = lazy(() => import('./pages/Ludo'));
 
 export default function App() {
   const { session } = useAuth();
@@ -82,7 +83,8 @@ export default function App() {
             <Route path="/room" element={<CompanionRoom />} />
             <Route path="/games" element={<Games />} />
             <Route path="/games/sudoku" element={<Suspense fallback={<main role="status">Opening Sudoku...</main>}><Sudoku /></Suspense>} />
-            <Route path="/games/heart-and-hollow" element={<HeartAndHollow />} />
+            <Route path="/games/heart-and-hollow" element={<Suspense fallback={<main role="status">Opening Heart &amp; Hollow...</main>}><HeartAndHollow /></Suspense>} />
+            <Route path="/games/ludo" element={<Suspense fallback={<main role="status">Opening Ludo...</main>}><Ludo /></Suspense>} />
           </Route>
         </Routes>
       </div>
