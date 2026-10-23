@@ -485,4 +485,3 @@ grant execute on function public.mark_chat_read(uuid) to authenticated;
 grant execute on function public.get_chat_unread_count(uuid) to authenticated;
 grant execute on function public.get_memory_attachments(uuid[]) to authenticated;
 grant execute on function public.get_question_history(integer) to authenticated;
-EOF
