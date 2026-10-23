@@ -36,7 +36,9 @@ jobs:
           test -s .env || { echo "::error::The root .env file is required for this trial deployment."; exit 1; }
           npm run build
       - name: Preserve SPA routes
-        run: cp dist/index.html dist/404.html
+        run: |
+          sed -i -E 's/(src|href)="([^"]+\.(js|css))"/\1="\2?v=${{ github.sha }}"/g' dist/index.html
+          cp dist/index.html dist/404.html
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
