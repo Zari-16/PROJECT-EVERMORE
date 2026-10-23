@@ -23,6 +23,7 @@ const Ludo = lazy(() => import('./pages/Ludo'));
 const TruthOrDare = lazy(() => import('./pages/TruthOrDare'));
 const Snake = lazy(() => import('./pages/Snake'));
 const OurFuture = lazy(() => import('./pages/OurFuture'));
+const NotificationCenter = lazy(() => import('./components/NotificationCenter'));
 
 export default function App() {
   const { session } = useAuth();
@@ -68,7 +69,7 @@ export default function App() {
             </>
           )}
         </nav>
-        {session && <button className="site-signout" type="button" onClick={handleSignOut}>Sign out</button>}
+        {session && <div className="site-header-actions"><Suspense fallback={null}><NotificationCenter /></Suspense><button className="site-signout" type="button" onClick={handleSignOut}>Sign out</button></div>}
       </header>
       {error && <p role="alert">{error}</p>}
       <div className="app-route-content">

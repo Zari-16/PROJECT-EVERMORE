@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../components/AuthProvider';
 import { supabase } from '../lib/supabase';
@@ -51,6 +51,26 @@ export default function Chat() {
   const [connection, setConnection] = useState<'connecting' | 'connected' | 'disconnected'>('connecting');
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
+  const didInitialScrollRef = useRef(false);
+  const followLatestRef = useRef(true);
+  const previousScrollHeightRef = useRef<number | null>(null);
+
+  useLayoutEffect(() => {
+    const container = messagesContainerRef.current;
+    if (!container || loading) return;
+
+    if (previousScrollHeightRef.current !== null) {
+      container.scrollTop += container.scrollHeight - previousScrollHeightRef.current;
+      previousScrollHeightRef.current = null;
+      return;
+    }
+    if (!didInitialScrollRef.current || followLatestRef.current) {
+      container.scrollTop = container.scrollHeight;
+      didInitialScrollRef.current = true;
+      followLatestRef.current = true;
+    }
+  }, [messages, loading]);
   useEffect(() => {
     if (!supabase || !session) {
       setError('Sign in to open chat.');
@@ -147,9 +167,13 @@ export default function Chat() {
       .order('id', { ascending: false })
       .limit(PAGE_SIZE);
 
-    if (olderError) setError(olderError.message);
+    if (olderError) {
+      previousScrollHeightRef.current = null;
+      setError(olderError.message);
+    }
     else {
       const page = (data ?? []).reverse() as ChatMessage[];
+      previousScrollHeightRef.current = messagesContainerRef.current?.scrollHeight ?? null;
       setMessages((current) => mergeMessages(page, current));
       setHasOlder(page.length === PAGE_SIZE);
       setError(null);
@@ -175,6 +199,7 @@ export default function Chat() {
 
     if (sendError) setError(sendError.message);
     else {
+      followLatestRef.current = true;
       setMessages((current) => mergeMessages(current, [data as ChatMessage]));
       setDraft('');
     }
@@ -246,7 +271,16 @@ export default function Chat() {
           <p>Pair your account first. <Link to="/pairing">Go to Pairing</Link></p>
         ) : (
           <>
-            <div className="chat-messages" aria-live="polite" aria-relevant="additions text">
+            <div
+              ref={messagesContainerRef}
+              className="chat-messages"
+              aria-live="polite"
+              aria-relevant="additions text"
+              onScroll={(event) => {
+                const element = event.currentTarget;
+                followLatestRef.current = element.scrollHeight - element.scrollTop - element.clientHeight < 80;
+              }}
+            >
               {hasOlder && (
                 <button type="button" disabled={loadingOlder} onClick={loadOlderMessages}>
                   {loadingOlder ? 'Loading...' : 'Load older messages'}
