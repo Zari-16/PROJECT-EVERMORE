@@ -218,9 +218,11 @@ begin
   v_state := pg_catalog.jsonb_build_object(
     'players', pg_catalog.to_jsonb(v_players),
     'phase', 'spin',
-    'selected_player', null,
-    'prompt_type', null,
-    'prompt_text', null,
+    'selected_player', null::text,
+    'previous_selected_player', null::text,
+    'prompt_type', null::text,
+    'prompt_text', null::text,
+    'previous_prompt_text', null::text,
     'round_number', 0,
     'last_action', 'The bottle is ready'
   );
@@ -272,6 +274,7 @@ declare
   v_game public.truth_dare_games%rowtype;
   v_state jsonb;
   v_selected uuid;
+  v_previous uuid;
 begin
   if v_user is null then raise exception 'Authentication required'; end if;
   select member.space_id into v_space
@@ -288,13 +291,21 @@ begin
      where player.user_id = v_user::text
   ) then raise exception 'You are not a player in this game'; end if;
 
-  v_selected := case when random() < 0.5
-    then (v_state->'players'->>0)::uuid else (v_state->'players'->>1)::uuid end;
+  v_previous := nullif(v_state->>'previous_selected_player', '')::uuid;
+  if v_previous = (v_state->'players'->>0)::uuid then
+    v_selected := (v_state->'players'->>1)::uuid;
+  elsif v_previous = (v_state->'players'->>1)::uuid then
+    v_selected := (v_state->'players'->>0)::uuid;
+  else
+    v_selected := case when random() < 0.5
+      then (v_state->'players'->>0)::uuid else (v_state->'players'->>1)::uuid end;
+  end if;
   v_state := pg_catalog.jsonb_set(v_state, '{phase}', pg_catalog.to_jsonb('selected'::text), true);
   v_state := pg_catalog.jsonb_set(v_state, '{selected_player}', pg_catalog.to_jsonb(v_selected::text), true);
+  v_state := pg_catalog.jsonb_set(v_state, '{previous_selected_player}', pg_catalog.to_jsonb(v_selected::text), true);
   v_state := pg_catalog.jsonb_set(v_state, '{prompt_type}', 'null'::jsonb, true);
   v_state := pg_catalog.jsonb_set(v_state, '{prompt_text}', 'null'::jsonb, true);
-  v_state := pg_catalog.jsonb_set(v_state, '{last_action}', pg_catalog.to_jsonb('The bottle chose a player'), true);
+  v_state := pg_catalog.jsonb_set(v_state, '{last_action}', pg_catalog.to_jsonb('The bottle chose a player'::text), true);
   update public.truth_dare_games set game_state = v_state, updated_at = now() where id = v_game.id;
   return v_state;
 end;
@@ -331,6 +342,7 @@ begin
   select prompt.prompt_text into v_prompt_text
     from public.truth_dare_prompts as prompt
    where prompt.prompt_type = v_prompt_type
+     and (v_state->>'previous_prompt_text' is null or prompt.prompt_text <> v_state->>'previous_prompt_text')
    order by random() limit 1;
   if not found then raise exception 'The prompt bank is empty'; end if;
   v_round := coalesce((v_state->>'round_number')::integer, 0) + 1;
@@ -338,8 +350,9 @@ begin
   v_state := pg_catalog.jsonb_set(v_state, '{phase}', pg_catalog.to_jsonb('drawn'::text), true);
   v_state := pg_catalog.jsonb_set(v_state, '{prompt_type}', pg_catalog.to_jsonb(v_prompt_type), true);
   v_state := pg_catalog.jsonb_set(v_state, '{prompt_text}', pg_catalog.to_jsonb(v_prompt_text), true);
+  v_state := pg_catalog.jsonb_set(v_state, '{previous_prompt_text}', pg_catalog.to_jsonb(v_prompt_text), true);
   v_state := pg_catalog.jsonb_set(v_state, '{round_number}', pg_catalog.to_jsonb(v_round), true);
-  v_state := pg_catalog.jsonb_set(v_state, '{last_action}', pg_catalog.to_jsonb('A prompt has been drawn'), true);
+  v_state := pg_catalog.jsonb_set(v_state, '{last_action}', pg_catalog.to_jsonb('A prompt has been drawn'::text), true);
   update public.truth_dare_games set game_state = v_state, updated_at = now() where id = v_game.id;
   return v_state;
 end;
@@ -374,7 +387,7 @@ begin
   v_state := pg_catalog.jsonb_set(v_state, '{prompt_type}', 'null'::jsonb, true);
   v_state := pg_catalog.jsonb_set(v_state, '{prompt_text}', 'null'::jsonb, true);
   v_state := pg_catalog.jsonb_set(v_state, '{last_action}', pg_catalog.to_jsonb(
-    case when p_skipped then 'Prompt skipped; spin again' else 'Turn finished; spin again' end), true);
+    (case when p_skipped then 'Prompt skipped; spin again' else 'Turn finished; spin again' end)::text), true);
   update public.truth_dare_games set game_state = v_state, updated_at = now() where id = v_game.id;
   return v_state;
 end;
