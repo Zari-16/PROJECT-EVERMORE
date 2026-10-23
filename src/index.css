@@ -2033,6 +2033,178 @@ button.playing-card:not(:disabled):hover {
   font-size: 1.4rem;
 }
 
+.snake-page {
+  width: min(860px, calc(100% - 32px));
+  margin: 24px auto 48px;
+}
+
+.snake-panel {
+  display: grid;
+  justify-items: center;
+  gap: 18px;
+}
+
+.snake-header {
+  display: flex;
+  width: 100%;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.snake-header h1,
+.snake-header p {
+  margin: 0;
+}
+
+.snake-header > div:first-child > p:last-child {
+  max-width: 58ch;
+  margin-top: 6px;
+  color: var(--muted);
+}
+
+.snake-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.snake-score {
+  display: grid;
+  justify-items: center;
+  color: var(--muted);
+}
+
+.snake-score strong {
+  color: var(--accent);
+  font-size: 1.5rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.snake-end-button {
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--muted);
+}
+
+.snake-board {
+  display: grid;
+  width: min(100%, 600px);
+  aspect-ratio: 1;
+  grid-template-columns: repeat(20, minmax(0, 1fr));
+  grid-template-rows: repeat(20, minmax(0, 1fr));
+  gap: 2px;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--surface) 72%, var(--secondary));
+  box-shadow: 0 12px 30px rgba(28, 20, 38, 0.08), 0 0 24px var(--magic);
+  outline: none;
+}
+
+.snake-board:focus-visible {
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 36%, transparent), 0 12px 30px rgba(28, 20, 38, 0.08);
+}
+
+.snake-cell {
+  display: grid;
+  min-width: 0;
+  min-height: 0;
+  place-items: center;
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--bg) 72%, var(--surface));
+}
+
+.snake-head {
+  border-radius: 35%;
+  background: var(--accent);
+  color: white;
+  font-size: clamp(0.45rem, 1.5vw, 0.9rem);
+}
+
+.snake-body {
+  border-radius: 35%;
+  background: color-mix(in srgb, var(--secondary) 76%, var(--surface));
+}
+
+.snake-food {
+  background: color-mix(in srgb, var(--primary) 38%, var(--surface));
+  color: var(--accent);
+  font-size: clamp(0.5rem, 1.6vw, 0.95rem);
+  animation: snake-food-pulse 1.3s ease-in-out infinite alternate;
+}
+
+@keyframes snake-food-pulse {
+  from { transform: scale(0.83); }
+  to { transform: scale(1); }
+}
+
+.snake-game-bar {
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  color: var(--muted);
+}
+
+.snake-game-bar p,
+.snake-footnote {
+  margin: 0;
+}
+
+.snake-game-bar [role="status"] {
+  color: var(--accent);
+}
+
+.snake-controls {
+  display: grid;
+  grid-template-columns: repeat(3, 52px);
+  grid-template-rows: repeat(2, 48px);
+  gap: 6px;
+}
+
+.snake-controls button {
+  min-width: 0;
+  padding: 0;
+  font-size: 1.3rem;
+}
+
+.snake-controls button:nth-child(1) { grid-column: 2; grid-row: 1; }
+.snake-controls button:nth-child(2) { grid-column: 1; grid-row: 2; }
+.snake-controls button:nth-child(3) { grid-column: 2; grid-row: 2; }
+.snake-controls button:nth-child(4) { grid-column: 3; grid-row: 2; }
+
+.snake-ready-panel {
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 24px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  text-align: center;
+}
+
+.snake-ready-panel p {
+  margin: 0;
+  color: var(--muted);
+}
+
+.snake-footnote {
+  color: var(--muted);
+  font-size: 0.88rem;
+  text-align: center;
+}
+
+.snake-library-mark {
+  color: var(--secondary);
+  font-size: 1.4rem;
+}
+
 .ludo-header {
   display: flex;
   align-items: center;
@@ -2726,6 +2898,10 @@ button.playing-card:not(:disabled):hover {
   .truth-dare-bottle.is-spinning {
     animation-duration: 1ms;
   }
+
+  .snake-food {
+    animation: none;
+  }
 }
 
 @media (max-width: 600px) {
@@ -2927,9 +3103,20 @@ button.playing-card:not(:disabled):hover {
 @media (max-width: 600px) {
   .games-page,
   .sudoku-page,
-  .truth-dare-page {
+  .truth-dare-page,
+  .snake-page {
     width: calc(100% - 16px);
     margin: 12px auto 28px;
+  }
+
+  .snake-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .snake-board {
+    gap: 1px;
+    padding: 6px;
   }
 
   .truth-dare-header {

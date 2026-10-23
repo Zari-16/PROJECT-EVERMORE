@@ -10,6 +10,15 @@ export default function Games() {
       </header>
       <section className="game-library-list" aria-label="Available games">
         <article className="game-library-item">
+          <div className="game-library-mark snake-library-mark" aria-hidden="true">✿</div>
+          <div className="game-library-copy">
+            <p className="games-eyebrow">Two players · Realtime</p>
+            <h2>Snake</h2>
+            <p>Steer one shared snake together and gather blossoms.</p>
+          </div>
+          <Link className="game-launch" to="/games/snake">Play together</Link>
+        </article>
+        <article className="game-library-item">
           <div className="game-library-mark truth-dare-library-mark" aria-hidden="true">✦</div>
           <div className="game-library-copy">
             <p className="games-eyebrow">Two players · Realtime</p>
