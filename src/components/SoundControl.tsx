@@ -32,7 +32,7 @@ export default function SoundControl() {
               onChange={(event) => updateSoundSettings({ volume: Number(event.target.value) / 100 })}
             />
           </label>
-          <button type="button" onClick={() => void playSound('messageReceived')}>Test sound</button>
+          <button type="button" onClick={() => void playSound('alert')}>Test sound</button>
         </section>
       )}
     </div>

@@ -32,7 +32,7 @@ export default function SoundPreferences() {
           onChange={(event) => updateSoundSettings({ volume: Number(event.target.value) / 100 })}
         />
       </label>
-      <button type="button" onClick={() => void playSound('messageReceived')}>Test effect</button>
+      <button type="button" onClick={() => void playSound('alert')}>Test effect</button>
 
       <label className="sound-mute">
         <input

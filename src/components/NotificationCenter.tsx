@@ -48,7 +48,12 @@ export default function NotificationCenter() {
       .on('postgres_changes', {
         event: 'INSERT', schema: 'public', table: 'evermore_notifications',
         filter: `user_id=eq.${session.user.id}`,
-      }, () => { void playSound('alert'); void loadNotifications(); })
+      }, (payload) => {
+        const onChatTab = window.location.pathname.startsWith('/chat');
+        const type = (payload.new as { notification_type?: string }).notification_type;
+        if (!(onChatTab && type === 'chat_message')) void playSound('alert');
+        void loadNotifications();
+      })
       .on('postgres_changes', {
         event: 'UPDATE', schema: 'public', table: 'evermore_notifications',
         filter: `user_id=eq.${session.user.id}`,

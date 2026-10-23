@@ -2,7 +2,6 @@ import { useEffect, useLayoutEffect, useRef, useState, type FormEvent } from 're
 import { Link } from 'react-router-dom';
 import { useAuth } from '../components/AuthProvider';
 import { supabase } from '../lib/supabase';
-import { playSound } from '../lib/sound';
 
 type ChatMessage = {
   id: string;
@@ -55,8 +54,6 @@ export default function Chat() {
   const [notice, setNotice] = useState<string | null>(null);
   const [replyingTo, setReplyingTo] = useState<ChatMessage | null>(null);
   const [highlightedId, setHighlightedId] = useState<string | null>(null);
-  const messagesRef = useRef<ChatMessage[]>([]);
-  messagesRef.current = messages;
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const didInitialScrollRef = useRef(false);
   const followLatestRef = useRef(true);
@@ -113,7 +110,6 @@ export default function Chat() {
     setLoading(true);
     let active = true;
     const client = supabase;
-    const currentUserId = session?.user.id;
     const channel = client
       .channel(`messages:${spaceId}`)
       .on('postgres_changes', {
@@ -124,10 +120,6 @@ export default function Chat() {
       }, (payload) => {
         const message = payload.new as ChatMessage;
         if (!message?.id) return;
-        if (payload.eventType === 'INSERT' && message.author !== currentUserId) {
-          const parent = message.reply_to ? messagesRef.current.find((item) => item.id === message.reply_to) : undefined;
-          void playSound(parent?.author === currentUserId ? 'replyPing' : 'messageReceived');
-        }
         setMessages((current) => mergeMessages(current, [message]));
       })
       .subscribe((status) => {
@@ -215,7 +207,6 @@ export default function Chat() {
       setMessages((current) => mergeMessages(current, [data as ChatMessage]));
       setDraft('');
       setReplyingTo(null);
-      void playSound('messageSent');
     }
     setSending(false);
   }
