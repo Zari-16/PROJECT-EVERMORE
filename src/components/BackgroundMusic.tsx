@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { getSoundSettings, getSoundUrl, useSoundSettings } from '../lib/sound';
+import { getBackgroundTrackUrl, getSoundSettings, useSoundSettings } from '../lib/sound';
 
 export default function BackgroundMusic() {
   const settings = useSoundSettings();
@@ -11,37 +11,49 @@ export default function BackgroundMusic() {
   }, [settings.backgroundVolume]);
 
   useEffect(() => {
-    if (!shouldPlay) {
-      audioRef.current?.pause();
-      return;
-    }
+    if (!shouldPlay) return;
 
     let cancelled = false;
-    const retry = () => { void start(); };
+    let audio: HTMLAudioElement | null = null;
 
-    async function start() {
-      const url = await getSoundUrl('background');
-      if (!url || cancelled) return;
-      const audio = audioRef.current ?? new Audio(url);
-      audio.loop = true;
-      audio.volume = getSoundSettings().backgroundVolume;
-      audioRef.current = audio;
+    const retry = () => {
+      document.removeEventListener('pointerdown', retry);
+      document.removeEventListener('keydown', retry);
+      if (audio) void play();
+    };
+
+    const play = async () => {
+      if (!audio) return;
       try {
         await audio.play();
       } catch {
         // Browsers block audio until the first click or key press.
-        document.addEventListener('pointerdown', retry, { once: true });
-        document.addEventListener('keydown', retry, { once: true });
+        if (!cancelled) {
+          document.addEventListener('pointerdown', retry, { once: true });
+          document.addEventListener('keydown', retry, { once: true });
+        }
       }
+    };
+
+    async function start() {
+      const url = await getBackgroundTrackUrl(settings.backgroundTrack);
+      if (!url || cancelled) return;
+      audio = new Audio(url);
+      audio.loop = true;
+      audio.volume = getSoundSettings().backgroundVolume;
+      audioRef.current = audio;
+      await play();
     }
 
     void start();
     return () => {
       cancelled = true;
+      audio?.pause();
+      if (audioRef.current === audio) audioRef.current = null;
       document.removeEventListener('pointerdown', retry);
       document.removeEventListener('keydown', retry);
     };
-  }, [shouldPlay]);
+  }, [settings.backgroundTrack, shouldPlay]);
 
   return null;
 }

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { getSoundUrl, playSound, updateSoundSettings, useSoundSettings } from '../lib/sound';
+import { BACKGROUND_TRACKS, getBackgroundTrackUrl, isBackgroundTrack, playSound, updateSoundSettings, useSoundSettings } from '../lib/sound';
 
 export default function SoundPreferences() {
   const settings = useSoundSettings();
@@ -7,9 +7,12 @@ export default function SoundPreferences() {
 
   useEffect(() => {
     let active = true;
-    void getSoundUrl('background').then((url) => { if (active) setHasBackgroundTrack(Boolean(url)); });
+    setHasBackgroundTrack(null);
+    void getBackgroundTrackUrl(settings.backgroundTrack).then((url) => {
+      if (active) setHasBackgroundTrack(Boolean(url));
+    });
     return () => { active = false; };
-  }, []);
+  }, [settings.backgroundTrack]);
 
   return (
     <section className="card sound-preferences">
@@ -40,6 +43,20 @@ export default function SoundPreferences() {
         Play quiet background music
       </label>
       <label className="sound-volume">
+        <span>Background sound</span>
+        <select
+          value={settings.backgroundTrack}
+          onChange={(event) => {
+            const track = event.target.value;
+            if (isBackgroundTrack(track)) updateSoundSettings({ backgroundTrack: track });
+          }}
+        >
+          {Object.entries(BACKGROUND_TRACKS).map(([track, details]) => (
+            <option key={track} value={track}>{details.label}</option>
+          ))}
+        </select>
+      </label>
+      <label className="sound-volume">
         <span>Background volume {Math.round(settings.backgroundVolume * 100)}%</span>
         <input
           type="range"
@@ -51,7 +68,7 @@ export default function SoundPreferences() {
         />
       </label>
       {settings.backgroundEnabled && hasBackgroundTrack === false && (
-        <p role="status">No background track found yet. Add public/sound/background.mp3 and refresh.</p>
+        <p role="status">Could not load the selected background sound. Check that its MP3 file is available in public/sound/.</p>
       )}
       <p className="sound-preferences-note">Saved on this device only.</p>
     </section>

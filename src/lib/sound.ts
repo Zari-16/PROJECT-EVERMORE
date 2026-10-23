@@ -1,28 +1,51 @@
 import { useSyncExternalStore } from 'react';
 
-// Files live in public/sound/ and are looked up as <name>.<extension>.
+// Values are asset filename stems in public/sound/ (the extension is probed below).
 export const SOUND_FILES = {
-  messageSent: 'message-sent',
-  messageReceived: 'message-received',
-  replyPing: 'reply-ping',
+  messageSent: 'emand_edroff-fairy-dust-magical-chime-576279',
+  messageReceived: 'juliush-little-secrets-fairy-tale-sound-8395',
+  replyPing: 'emand_edroff-fairy-dust-magical-chime-576279',
   alert: 'alert',
-  whiteboardUndo: 'whiteboard-undo',
-  whiteboardClear: 'whiteboard-clear',
-  background: 'background',
+  whiteboardUndo: 'emand_edroff-fairy-dust-magical-chime-576279',
+  whiteboardClear: 'juliush-little-secrets-fairy-tale-sound-8395',
 } as const;
 
+export const BACKGROUND_TRACKS = {
+  fantasy: {
+    label: 'Enchanted fantasy (30 sec)',
+    file: 'sonican-enchanted-magical-fantasy-30-seconds-615098',
+  },
+  classical: {
+    label: 'Enchanted classical (30 sec)',
+    file: 'sonican-enchanted-fantasy-30-sec-classical-music-535322',
+  },
+} as const;
+
+export type BackgroundTrack = keyof typeof BACKGROUND_TRACKS;
 export type SoundName = keyof typeof SOUND_FILES;
+
+export function isBackgroundTrack(track: string): track is BackgroundTrack {
+  return Object.prototype.hasOwnProperty.call(BACKGROUND_TRACKS, track);
+}
+
 export type SoundSettings = {
   volume: number;
   muted: boolean;
   backgroundEnabled: boolean;
   backgroundVolume: number;
+  backgroundTrack: BackgroundTrack;
 };
 
 const SOUND_DIR = `${import.meta.env.BASE_URL}sound/`;
 const EXTENSIONS = ['mp3', 'wav', 'ogg'];
 const STORAGE_KEY = 'evermore:sound-settings';
-const DEFAULT_SETTINGS: SoundSettings = { volume: 0.7, muted: false, backgroundEnabled: false, backgroundVolume: 0.25 };
+const DEFAULT_SETTINGS: SoundSettings = {
+  volume: 0.7,
+  muted: false,
+  backgroundEnabled: false,
+  backgroundVolume: 0.25,
+  backgroundTrack: 'fantasy',
+};
 
 const clampVolume = (value: unknown, fallback: number) =>
   typeof value === 'number' ? Math.min(1, Math.max(0, value)) : fallback;
@@ -35,6 +58,10 @@ function readSettings(): SoundSettings {
       muted: stored?.muted === true,
       backgroundEnabled: stored?.backgroundEnabled === true,
       backgroundVolume: clampVolume(stored?.backgroundVolume, DEFAULT_SETTINGS.backgroundVolume),
+      backgroundTrack: typeof stored?.backgroundTrack === 'string'
+        && isBackgroundTrack(stored.backgroundTrack)
+        ? stored.backgroundTrack
+        : DEFAULT_SETTINGS.backgroundTrack,
     };
   } catch {
     return DEFAULT_SETTINGS;
@@ -69,33 +96,49 @@ export function useSoundSettings() {
 function probe(url: string) {
   return new Promise<boolean>((resolve) => {
     const audio = new Audio();
-    const timer = window.setTimeout(() => resolve(false), 5000);
-    audio.addEventListener('loadedmetadata', () => { window.clearTimeout(timer); resolve(true); }, { once: true });
-    audio.addEventListener('error', () => { window.clearTimeout(timer); resolve(false); }, { once: true });
+    const finish = (available: boolean) => {
+      window.clearTimeout(timer);
+      audio.removeEventListener('loadedmetadata', onLoaded);
+      audio.removeEventListener('error', onError);
+      audio.removeAttribute('src');
+      audio.load();
+      resolve(available);
+    };
+    const onLoaded = () => finish(true);
+    const onError = () => finish(false);
+    const timer = window.setTimeout(() => finish(false), 5000);
+    audio.addEventListener('loadedmetadata', onLoaded, { once: true });
+    audio.addEventListener('error', onError, { once: true });
     audio.preload = 'metadata';
     audio.src = url;
+    audio.load();
   });
 }
 
 // A missing file is remembered until the page reloads, so pushing a file and refreshing picks it up.
-const sources = new Map<SoundName, Promise<string | null>>();
+const sources = new Map<string, Promise<string | null>>();
 
-function resolveSource(name: SoundName) {
-  let source = sources.get(name);
+function resolveAsset(file: string) {
+  let source = sources.get(file);
   if (!source) {
     source = (async () => {
       for (const extension of EXTENSIONS) {
-        const url = `${SOUND_DIR}${SOUND_FILES[name]}.${extension}`;
+        const url = `${SOUND_DIR}${file}.${extension}`;
         if (await probe(url)) return url;
       }
       return null;
     })();
-    sources.set(name, source);
+    sources.set(file, source);
   }
   return source;
 }
 
-export const getSoundUrl = resolveSource;
+function resolveSource(name: SoundName) {
+  return resolveAsset(SOUND_FILES[name]);
+}
+
+export const getBackgroundTrackUrl = (track: BackgroundTrack) =>
+  resolveAsset(BACKGROUND_TRACKS[track].file);
 
 export async function playSound(name: SoundName) {
   if (typeof Audio === 'undefined' || settings.muted || settings.volume === 0) return;
