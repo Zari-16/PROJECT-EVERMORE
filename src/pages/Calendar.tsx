@@ -12,6 +12,9 @@ type CalendarEvent = {
   starts_at: string;
   color: string;
   visibility: 'private' | 'shared';
+  recurrence: 'none' | 'daily' | 'weekly' | 'monthly' | 'yearly';
+  recurrence_until: string | null;
+  reminder_minutes: number | null;
   updated_at: string;
 };
 
@@ -24,6 +27,9 @@ type EventForm = {
   starts_at: string;
   color: string;
   visibility: 'private' | 'shared';
+  recurrence: CalendarEvent['recurrence'];
+  recurrence_until: string;
+  reminder_minutes: string;
 };
 
 const EMPTY_FORM: EventForm = {
@@ -33,8 +39,11 @@ const EMPTY_FORM: EventForm = {
   starts_at: '',
   color: '#773f91',
   visibility: 'private',
+  recurrence: 'none',
+  recurrence_until: '',
+  reminder_minutes: '',
 };
-const EVENT_COLUMNS = 'id,space_id,created_by,title,description,category,starts_at,color,visibility,updated_at';
+const EVENT_COLUMNS = 'id,space_id,created_by,title,description,category,starts_at,color,visibility,recurrence,recurrence_until,reminder_minutes,updated_at';
 
 function localDateKey(date: Date) {
   const year = date.getFullYear();
@@ -65,6 +74,44 @@ function toLocalInput(value: string) {
   return new Date(date.getTime() - date.getTimezoneOffset() * 60_000).toISOString().slice(0, 16);
 }
 
+function occursOnDate(event: CalendarEvent, day: Date) {
+  const start = new Date(event.starts_at);
+  const dayKey = localDateKey(day);
+  const startKey = localDateKey(start);
+  if (dayKey < startKey || (event.recurrence_until && dayKey > event.recurrence_until)) return false;
+  if (dayKey === startKey || event.recurrence === 'daily') return true;
+  if (event.recurrence === 'none') return false;
+  if (event.recurrence === 'weekly') return day.getDay() === start.getDay();
+  if (event.recurrence === 'monthly') {
+    const lastDay = new Date(day.getFullYear(), day.getMonth() + 1, 0).getDate();
+    return day.getDate() === Math.min(start.getDate(), lastDay);
+  }
+  if (day.getMonth() !== start.getMonth()) return false;
+  const lastDay = new Date(day.getFullYear(), day.getMonth() + 1, 0).getDate();
+  return day.getDate() === Math.min(start.getDate(), lastDay);
+}
+
+function nextOccurrence(event: CalendarEvent, after: Date): Date | null {
+  const start = new Date(event.starts_at);
+  if (event.recurrence === 'none') return start > after ? start : null;
+  const candidate = new Date(start);
+  const originalDay = start.getDate();
+  for (let count = 0; count < 5000 && candidate <= after; count += 1) {
+    if (event.recurrence === 'daily') candidate.setDate(candidate.getDate() + 1);
+    else if (event.recurrence === 'weekly') candidate.setDate(candidate.getDate() + 7);
+    else if (event.recurrence === 'monthly') {
+      candidate.setDate(1);
+      candidate.setMonth(candidate.getMonth() + 1);
+      candidate.setDate(Math.min(originalDay, new Date(candidate.getFullYear(), candidate.getMonth() + 1, 0).getDate()));
+    } else {
+      candidate.setFullYear(candidate.getFullYear() + 1);
+      if (candidate.getMonth() !== start.getMonth()) candidate.setDate(0);
+    }
+  }
+  if (event.recurrence_until && localDateKey(candidate) > event.recurrence_until) return null;
+  return candidate > after ? candidate : null;
+}
+
 export default function Calendar() {
   const { session } = useAuth();
   const [spaceId, setSpaceId] = useState<string | null>(null);
@@ -80,6 +127,9 @@ export default function Calendar() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const [notificationPermission, setNotificationPermission] = useState<NotificationPermission | 'unsupported'>(() =>
+    typeof Notification === 'undefined' ? 'unsupported' : Notification.permission,
+  );
 
   const loadEvents = useCallback(async () => {
     if (!supabase || !session) return;
@@ -166,6 +216,9 @@ export default function Calendar() {
       starts_at: toLocalInput(event.starts_at),
       color: event.color,
       visibility: event.visibility,
+      recurrence: event.recurrence,
+      recurrence_until: event.recurrence_until ?? '',
+      reminder_minutes: event.reminder_minutes === null ? '' : String(event.reminder_minutes),
     });
     const eventDate = new Date(event.starts_at);
     setSelectedDate(localDateKey(eventDate));
@@ -202,6 +255,9 @@ export default function Calendar() {
       starts_at: startsAt.toISOString(),
       color: form.color,
       visibility: form.visibility,
+      recurrence: form.recurrence,
+      recurrence_until: form.recurrence === 'none' ? null : form.recurrence_until || null,
+      reminder_minutes: form.reminder_minutes === '' ? null : Number(form.reminder_minutes),
       space_id: form.visibility === 'shared' ? spaceId : null,
     };
 
@@ -243,9 +299,10 @@ export default function Calendar() {
 
   const calendarDays = getCalendarDays(calendarMonth);
   const eventsByDate = new Map<string, CalendarEvent[]>();
-  for (const event of events) {
-    const key = localDateKey(new Date(event.starts_at));
-    eventsByDate.set(key, [...(eventsByDate.get(key) ?? []), event]);
+  for (const day of calendarDays) {
+    const key = localDateKey(day);
+    const dayEvents = events.filter((event) => occursOnDate(event, day));
+    if (dayEvents.length) eventsByDate.set(key, dayEvents);
   }
   const selectedEvents = eventsByDate.get(selectedDate) ?? [];
   const todayKey = localDateKey(new Date());
@@ -262,6 +319,35 @@ export default function Calendar() {
     setCalendarMonth((current) => new Date(current.getFullYear(), current.getMonth() + amount, 1));
   }
 
+  async function enableBrowserReminders() {
+    if (typeof Notification === 'undefined') {
+      setNotificationPermission('unsupported');
+      return;
+    }
+    setNotificationPermission(await Notification.requestPermission());
+  }
+
+  useEffect(() => {
+    if (notificationPermission !== 'granted' || !session) return;
+    const checkReminders = () => {
+      const now = new Date();
+      for (const event of events) {
+        if (event.reminder_minutes === null) continue;
+        const occurrence = nextOccurrence(event, new Date(now.getTime() - event.reminder_minutes * 60_000));
+        if (!occurrence) continue;
+        const reminderAt = occurrence.getTime() - event.reminder_minutes * 60_000;
+        if (now.getTime() < reminderAt || now.getTime() >= occurrence.getTime()) continue;
+        const key = `evermore:calendar-reminder:${session.user.id}:${event.id}:${occurrence.toISOString()}`;
+        if (window.localStorage.getItem(key)) continue;
+        new Notification(event.title, { body: `Coming up ${occurrence.toLocaleString()}` });
+        window.localStorage.setItem(key, 'sent');
+      }
+    };
+    checkReminders();
+    const timer = window.setInterval(checkReminders, 30_000);
+    return () => window.clearInterval(timer);
+  }, [events, notificationPermission, session]);
+
   return (
     <main className="calendar-page">
       <section className="calendar-panel">
@@ -270,6 +356,8 @@ export default function Calendar() {
             <h1>Shared Calendar</h1>
             <p>Personal notes stay yours; shared events are visible to both partners.</p>
           </div>
+          {notificationPermission === 'default' && <button type="button" onClick={() => void enableBrowserReminders()}>Enable browser reminders</button>}
+          {notificationPermission === 'denied' && <span className="calendar-reminder-note">Browser reminders are blocked in site settings.</span>}
         </header>
 
         <section className="calendar-month" aria-label="Monthly calendar">
@@ -362,6 +450,32 @@ export default function Calendar() {
               {spaceId && <option value="shared">Shared with partner</option>}
             </select>
 
+            <label htmlFor="event-recurrence">Repeat</label>
+            <select id="event-recurrence" value={form.recurrence} onChange={(event) => updateForm('recurrence', event.target.value as EventForm['recurrence'])}>
+              <option value="none">Does not repeat</option>
+              <option value="daily">Every day</option>
+              <option value="weekly">Every week</option>
+              <option value="monthly">Every month</option>
+              <option value="yearly">Every year</option>
+            </select>
+
+            {form.recurrence !== 'none' && <>
+              <label htmlFor="event-recurrence-until">Repeat until (optional)</label>
+              <input id="event-recurrence-until" type="date" min={form.starts_at.slice(0, 10)} value={form.recurrence_until} onChange={(event) => updateForm('recurrence_until', event.target.value)} />
+            </>}
+
+            <label htmlFor="event-reminder">Reminder</label>
+            <select id="event-reminder" value={form.reminder_minutes} onChange={(event) => updateForm('reminder_minutes', event.target.value)}>
+              <option value="">No reminder</option>
+              <option value="0">At event time</option>
+              <option value="5">5 minutes before</option>
+              <option value="10">10 minutes before</option>
+              <option value="15">15 minutes before</option>
+              <option value="30">30 minutes before</option>
+              <option value="60">1 hour before</option>
+              <option value="1440">1 day before</option>
+            </select>
+
             <div className="calendar-form-actions">
               <button type="submit" disabled={saving}>{saving ? 'Saving...' : editingId ? 'Save changes' : 'Add event'}</button>
               {editingId && <button type="button" disabled={saving} onClick={cancelEdit}>Cancel</button>}
@@ -376,7 +490,7 @@ export default function Calendar() {
               <div className="calendar-event-main">
                 <p className="calendar-event-meta">
                   <time dateTime={event.starts_at}>{new Date(event.starts_at).toLocaleString()}</time>
-                  {' · '}{event.category}{' · '}{event.visibility === 'shared' ? 'Shared' : 'Private'}
+                  {' · '}{event.category}{' · '}{event.visibility === 'shared' ? 'Shared' : 'Private'}{event.recurrence !== 'none' ? ` · ${event.recurrence}` : ''}{event.reminder_minutes !== null ? ' · reminder set' : ''}
                 </p>
                 <h3>{event.title}</h3>
                 {event.description && <p>{event.description}</p>}

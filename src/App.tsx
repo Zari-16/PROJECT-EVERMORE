@@ -7,22 +7,23 @@ import { useAuth } from './components/AuthProvider';
 import { supabase } from './lib/supabase';
 import Home from './pages/Home';
 import Pairing from './pages/Pairing';
-import Chat from './pages/Chat';
 import Profile from './pages/Profile';
-import Whiteboard from './pages/Whiteboard';
-import Questions from './pages/Questions';
-import Calendar from './pages/Calendar';
-import Memories from './pages/Memories';
-import CompanionRoom from './pages/CompanionRoom';
 import FantasyAtmosphere from './components/FantasyAtmosphere';
-import Games from './pages/Games';
 
+const Chat = lazy(() => import('./pages/Chat'));
+const Whiteboard = lazy(() => import('./pages/Whiteboard'));
+const Questions = lazy(() => import('./pages/Questions'));
+const Calendar = lazy(() => import('./pages/Calendar'));
+const Memories = lazy(() => import('./pages/Memories'));
+const CompanionRoom = lazy(() => import('./pages/CompanionRoom'));
+const Games = lazy(() => import('./pages/Games'));
 const Sudoku = lazy(() => import('./pages/Sudoku'));
 const HeartAndHollow = lazy(() => import('./pages/HeartAndHollow'));
 const Ludo = lazy(() => import('./pages/Ludo'));
 const TruthOrDare = lazy(() => import('./pages/TruthOrDare'));
 const Snake = lazy(() => import('./pages/Snake'));
 const OurFuture = lazy(() => import('./pages/OurFuture'));
+const NotificationCenter = lazy(() => import('./components/NotificationCenter'));
 
 export default function App() {
   const { session } = useAuth();
@@ -68,7 +69,7 @@ export default function App() {
             </>
           )}
         </nav>
-        {session && <button className="site-signout" type="button" onClick={handleSignOut}>Sign out</button>}
+        {session && <div className="site-header-actions"><Suspense fallback={null}><NotificationCenter /></Suspense><button className="site-signout" type="button" onClick={handleSignOut}>Sign out</button></div>}
       </header>
       {error && <p role="alert">{error}</p>}
       <div className="app-route-content">
@@ -79,14 +80,14 @@ export default function App() {
             <Route path="/" element={<Home />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/pairing" element={<Pairing />} />
-            <Route path="/chat" element={<Chat />} />
-            <Route path="/whiteboard" element={<Whiteboard />} />
-            <Route path="/questions" element={<Questions />} />
-            <Route path="/calendar" element={<Calendar />} />
-            <Route path="/memories" element={<Memories />} />
+            <Route path="/chat" element={<Suspense fallback={<main role="status">Opening chat...</main>}><Chat /></Suspense>} />
+            <Route path="/whiteboard" element={<Suspense fallback={<main role="status">Opening the whiteboard...</main>}><Whiteboard /></Suspense>} />
+            <Route path="/questions" element={<Suspense fallback={<main role="status">Opening questions...</main>}><Questions /></Suspense>} />
+            <Route path="/calendar" element={<Suspense fallback={<main role="status">Opening calendar...</main>}><Calendar /></Suspense>} />
+            <Route path="/memories" element={<Suspense fallback={<main role="status">Opening Memory Garden...</main>}><Memories /></Suspense>} />
             <Route path="/future" element={<Suspense fallback={<main role="status">Opening Our Future...</main>}><OurFuture /></Suspense>} />
-            <Route path="/room" element={<CompanionRoom />} />
-            <Route path="/games" element={<Games />} />
+            <Route path="/room" element={<Suspense fallback={<main role="status">Opening Companion Room...</main>}><CompanionRoom /></Suspense>} />
+            <Route path="/games" element={<Suspense fallback={<main role="status">Opening games...</main>}><Games /></Suspense>} />
             <Route path="/games/sudoku" element={<Suspense fallback={<main role="status">Opening Sudoku...</main>}><Sudoku /></Suspense>} />
             <Route path="/games/heart-and-hollow" element={<Suspense fallback={<main role="status">Opening Heart &amp; Hollow...</main>}><HeartAndHollow /></Suspense>} />
             <Route path="/games/ludo" element={<Suspense fallback={<main role="status">Opening Ludo...</main>}><Ludo /></Suspense>} />

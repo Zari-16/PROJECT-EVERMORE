@@ -14,6 +14,17 @@ type Memory = {
   created_at: string;
   updated_at: string;
 };
+type MemoryAttachment = {
+  id: string;
+  memory_id: string;
+  storage_path: string;
+  file_name: string;
+  mime_type: string;
+  file_size: number;
+  created_by: string;
+  created_at: string;
+  url?: string;
+};
 
 type SpaceRow = { space_id: string };
 type MemoryForm = {
@@ -32,11 +43,13 @@ const EMPTY_FORM: MemoryForm = {
   visibility: 'private',
 };
 const MEMORY_COLUMNS = 'id,space_id,created_by,title,body,memory_date,category,visibility,created_at,updated_at';
+const MEMORY_FILE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'application/pdf', 'text/plain']);
 
 export default function Memories() {
   const { session } = useAuth();
   const [spaceId, setSpaceId] = useState<string | null>(null);
   const [memories, setMemories] = useState<Memory[]>([]);
+  const [attachments, setAttachments] = useState<Record<string, MemoryAttachment[]>>({});
   const [form, setForm] = useState<MemoryForm>(EMPTY_FORM);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [openedMemoryId, setOpenedMemoryId] = useState<string | null>(null);
@@ -46,6 +59,31 @@ export default function Memories() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+
+  const loadAttachments = useCallback(async (rows: Memory[]) => {
+    if (!supabase || rows.length === 0) {
+      setAttachments({});
+      return true;
+    }
+    const client = supabase;
+    const { data, error: attachmentError } = await client.rpc('get_memory_attachments', {
+      p_memory_ids: rows.map((memory) => memory.id),
+    });
+    if (attachmentError) {
+      setError(attachmentError.message);
+      return false;
+    }
+    const signedRows = await Promise.all(((data ?? []) as MemoryAttachment[]).map(async (attachment) => {
+      const { data: signed } = await client.storage.from('evermore-private').createSignedUrl(attachment.storage_path, 3600);
+      return { ...attachment, url: signed?.signedUrl };
+    }));
+    const grouped: Record<string, MemoryAttachment[]> = {};
+    for (const attachment of signedRows) {
+      (grouped[attachment.memory_id] ??= []).push(attachment);
+    }
+    setAttachments(grouped);
+    return true;
+  }, []);
 
   const loadMemories = useCallback(async () => {
     if (!supabase || !session) return;
@@ -60,11 +98,13 @@ export default function Memories() {
 
     if (loadError) setError(loadError.message);
     else {
-      setMemories((data ?? []) as Memory[]);
-      setError(null);
+      const rows = (data ?? []) as Memory[];
+      setMemories(rows);
+      const attachmentsLoaded = await loadAttachments(rows);
+      if (attachmentsLoaded) setError(null);
     }
     setLoading(false);
-  }, [session, spaceId]);
+  }, [session, spaceId, loadAttachments]);
 
   useEffect(() => {
     if (!supabase || !session) {
@@ -107,6 +147,9 @@ export default function Memories() {
         filter: `space_id=eq.${spaceId}`,
       }, () => { void loadMemories(); });
     }
+    channel.on('postgres_changes', {
+      event: '*', schema: 'public', table: 'memory_attachments',
+    }, () => { void loadMemories(); });
     channel = channel.subscribe();
 
     async function refresh() {
@@ -197,6 +240,7 @@ export default function Memories() {
     if (!supabase || !session) return;
     if (!window.confirm(`Delete “${memory.title}”?`)) return;
 
+    const memoryAttachments = attachments[memory.id] ?? [];
     const { error: deleteError } = await supabase
       .from('memories')
       .delete()
@@ -204,11 +248,93 @@ export default function Memories() {
       .eq('created_by', session.user.id);
     if (deleteError) setError(deleteError.message);
     else {
+      if (memoryAttachments.length) {
+        const { error: storageError } = await supabase.storage.from('evermore-private').remove(memoryAttachments.map((attachment) => attachment.storage_path));
+        if (storageError) setError(`Memory deleted, but attachment cleanup failed: ${storageError.message}`);
+      }
       setNotice('Memory deleted.');
       setMemories((current) => current.filter((item) => item.id !== memory.id));
       if (editingId === memory.id) cancelEdit();
       else if (openedMemoryId === memory.id) setOpenedMemoryId(null);
     }
+  }
+
+  async function uploadAttachments(memory: Memory, files: FileList | null) {
+    if (!supabase || !session || !files?.length) return;
+    const uploadedPaths: string[] = [];
+    let uploadFailed = false;
+    setSaving(true);
+    setError(null);
+    setNotice(null);
+    for (const file of Array.from(files)) {
+      if (!MEMORY_FILE_TYPES.has(file.type)) {
+        setError(`${file.name} is not an allowed file type.`);
+        uploadFailed = true;
+        break;
+      }
+      if (file.size > 10 * 1024 * 1024) {
+        setError(`${file.name} exceeds the 10 MB limit.`);
+        uploadFailed = true;
+        break;
+      }
+      const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+      const folder = memory.space_id ?? 'private';
+      const path = `${folder}/${session.user.id}/memories/${crypto.randomUUID()}-${safeName}`;
+      const { error: storageError } = await supabase.storage.from('evermore-private').upload(path, file, { contentType: file.type, upsert: false });
+      if (storageError) {
+        setError(storageError.message);
+        uploadFailed = true;
+        break;
+      }
+      uploadedPaths.push(path);
+      const { error: metadataError } = await supabase.from('memory_attachments').insert({
+        memory_id: memory.id,
+        created_by: session.user.id,
+        storage_path: path,
+        file_name: file.name,
+        mime_type: file.type,
+        file_size: file.size,
+      });
+      if (metadataError) {
+        setError(metadataError.message);
+        uploadFailed = true;
+        break;
+      }
+    }
+    if (uploadFailed && uploadedPaths.length) {
+      await supabase.from('memory_attachments').delete().in('storage_path', uploadedPaths);
+      await supabase.storage.from('evermore-private').remove(uploadedPaths);
+    } else if (!uploadFailed && uploadedPaths.length) {
+      setNotice('Attachment added to memory.');
+      await loadMemories();
+    }
+    setSaving(false);
+  }
+
+  async function removeAttachment(attachment: MemoryAttachment) {
+    if (!supabase || !session || !window.confirm(`Remove ${attachment.file_name}?`)) return;
+    setSaving(true);
+    const { error: storageError } = await supabase.storage.from('evermore-private').remove([attachment.storage_path]);
+    if (storageError) setError(storageError.message);
+    else {
+      const { error: rowError } = await supabase.from('memory_attachments').delete().eq('id', attachment.id).eq('created_by', session.user.id);
+      if (rowError) setError(rowError.message);
+      else await loadMemories();
+    }
+    setSaving(false);
+  }
+
+  function exportMemories() {
+    const content = JSON.stringify(memories.map((memory) => ({
+      ...memory,
+      attachments: (attachments[memory.id] ?? []).map(({ file_name, mime_type, file_size, created_at }) => ({ file_name, mime_type, file_size, created_at })),
+    })), null, 2);
+    const url = URL.createObjectURL(new Blob([content], { type: 'application/json' }));
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'evermore-memories.json';
+    link.click();
+    URL.revokeObjectURL(url);
   }
 
   if (loading) return <main role="status">Opening your Memory Garden...</main>;
@@ -265,6 +391,7 @@ export default function Memories() {
         <section className="memories-library">
           <header className="memories-library-header">
             <h2>Our collection</h2>
+            <button type="button" disabled={!memories.length} onClick={exportMemories}>Export JSON</button>
             <label>
               <span className="visually-hidden">Search memories</span>
               <input type="search" placeholder="Search memories" value={search} onChange={(event) => setSearch(event.target.value)} />
@@ -301,10 +428,19 @@ export default function Memories() {
                   {openedMemoryId === memory.id && (
                     <div className="memory-letter" id={`memory-letter-${memory.id}`}>
                       <p>{memory.body}</p>
+                      {attachments[memory.id]?.length > 0 && <ul className="memory-attachments">
+                        {attachments[memory.id].map((attachment) => (
+                          <li key={attachment.id}>
+                            <a href={attachment.url} target="_blank" rel="noreferrer">{attachment.file_name}</a>
+                            {attachment.created_by === session?.user.id && <button type="button" disabled={saving} onClick={() => void removeAttachment(attachment)}>Remove</button>}
+                          </li>
+                        ))}
+                      </ul>}
                       {memory.created_by === session?.user.id && (
                         <footer>
                           <button type="button" onClick={() => startEdit(memory)}>Edit</button>
                           <button type="button" onClick={() => void handleDelete(memory)}>Delete</button>
+                          <label className="memory-attachment-add">Attach files<input type="file" multiple accept="image/jpeg,image/png,image/webp,application/pdf,text/plain" disabled={saving} onChange={(event) => { void uploadAttachments(memory, event.target.files); event.currentTarget.value = ''; }} /></label>
                         </footer>
                       )}
                     </div>
