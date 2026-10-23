@@ -22,6 +22,7 @@ const HeartAndHollow = lazy(() => import('./pages/HeartAndHollow'));
 const Ludo = lazy(() => import('./pages/Ludo'));
 const TruthOrDare = lazy(() => import('./pages/TruthOrDare'));
 const Snake = lazy(() => import('./pages/Snake'));
+const OurFuture = lazy(() => import('./pages/OurFuture'));
 
 export default function App() {
   const { session } = useAuth();
@@ -56,6 +57,7 @@ export default function App() {
               <NavLink to="/questions" className={({ isActive }) => `site-nav-link${isActive ? ' is-active' : ''}`}>Questions</NavLink>
               <NavLink to="/calendar" className={({ isActive }) => `site-nav-link${isActive ? ' is-active' : ''}`}>Calendar</NavLink>
               <NavLink to="/memories" className={({ isActive }) => `site-nav-link${isActive ? ' is-active' : ''}`}>Memory Garden</NavLink>
+              <NavLink to="/future" className={({ isActive }) => `site-nav-link${isActive ? ' is-active' : ''}`}>Our Future</NavLink>
               <NavLink to="/room" className={({ isActive }) => `site-nav-link${isActive ? ' is-active' : ''}`}>Companion Room</NavLink>
               <NavLink to="/games" className={({ isActive }) => `site-nav-link${isActive ? ' is-active' : ''}`}>Games</NavLink>
             </>
@@ -82,6 +84,7 @@ export default function App() {
             <Route path="/questions" element={<Questions />} />
             <Route path="/calendar" element={<Calendar />} />
             <Route path="/memories" element={<Memories />} />
+            <Route path="/future" element={<Suspense fallback={<main role="status">Opening Our Future...</main>}><OurFuture /></Suspense>} />
             <Route path="/room" element={<CompanionRoom />} />
             <Route path="/games" element={<Games />} />
             <Route path="/games/sudoku" element={<Suspense fallback={<main role="status">Opening Sudoku...</main>}><Sudoku /></Suspense>} />

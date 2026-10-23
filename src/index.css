@@ -2205,6 +2205,244 @@ button.playing-card:not(:disabled):hover {
   font-size: 1.4rem;
 }
 
+.our-future-page {
+  width: min(960px, calc(100% - 32px));
+  margin: 24px auto 48px;
+}
+
+.our-future-panel {
+  display: grid;
+  gap: 20px;
+}
+
+.our-future-header {
+  padding: 12px 0 18px;
+  border-bottom: 1px solid var(--border);
+}
+
+.our-future-header h1,
+.our-future-header p {
+  margin: 0;
+}
+
+.our-future-header h1 {
+  margin-top: 3px;
+}
+
+.our-future-header > p:last-child {
+  margin-top: 6px;
+  color: var(--muted);
+}
+
+.our-future-tabs {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  border-bottom: 1px solid var(--border);
+  scrollbar-width: thin;
+}
+
+.our-future-tabs button {
+  flex: 0 0 auto;
+  padding: 10px 14px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  background: transparent;
+  color: var(--muted);
+}
+
+.our-future-tabs button.is-active {
+  border-bottom-color: var(--accent);
+  color: var(--accent);
+}
+
+.our-future-tabs button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+.our-future-tab-content,
+.future-section {
+  min-width: 0;
+}
+
+.future-section {
+  display: grid;
+  gap: 18px;
+}
+
+.future-form {
+  display: grid;
+  gap: 13px;
+  padding: 18px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+}
+
+.future-section-heading h2,
+.future-section-heading p {
+  margin: 0;
+}
+
+.future-section-heading p {
+  margin-top: 4px;
+  color: var(--muted);
+}
+
+.future-form > label,
+.future-form-row > label {
+  display: grid;
+  gap: 6px;
+  color: var(--text);
+  font-weight: 600;
+}
+
+.future-form input,
+.future-form textarea,
+.future-form select {
+  width: 100%;
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+}
+
+.future-form textarea {
+  resize: vertical;
+}
+
+.future-form-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.future-list-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+.future-list-heading h2 {
+  margin: 0 0 8px;
+}
+
+.future-list-heading span,
+.future-item-meta {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.future-list {
+  display: grid;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.future-list-item {
+  display: grid;
+  gap: 10px;
+  padding: 16px 4px;
+  border-bottom: 1px solid var(--border);
+}
+
+.future-item-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.future-item-heading > div {
+  min-width: 0;
+}
+
+.future-item-heading h3,
+.future-item-heading p,
+.future-item-meta {
+  margin: 0;
+}
+
+.future-item-heading h3 {
+  overflow-wrap: anywhere;
+}
+
+.future-item-heading > div > p:not(.future-item-meta) {
+  margin-top: 6px;
+  color: var(--muted);
+  white-space: pre-wrap;
+}
+
+.future-item-meta {
+  margin-bottom: 4px;
+}
+
+.future-list-item.is-sealed {
+  color: var(--muted);
+}
+
+.future-list-item.is-complete h3 {
+  color: var(--muted);
+}
+
+.future-locked-note {
+  margin: 0;
+  color: var(--muted);
+}
+
+.future-letter-body {
+  margin: 0;
+  padding: 16px;
+  border-left: 3px solid var(--secondary);
+  background: color-mix(in srgb, var(--surface) 72%, var(--secondary));
+  color: var(--text);
+  line-height: 1.65;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.quest-scoreboard {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.quest-scoreboard > div {
+  display: grid;
+  gap: 2px;
+  min-width: 130px;
+  padding: 12px 16px;
+  border-left: 3px solid var(--accent);
+  background: var(--surface);
+}
+
+.quest-scoreboard strong {
+  color: var(--accent);
+  font-size: 1.3rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.quest-scoreboard span {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.our-future-empty {
+  margin: 0;
+  padding: 18px 4px;
+  color: var(--muted);
+}
+
 .ludo-header {
   display: flex;
   align-items: center;
@@ -3104,9 +3342,23 @@ button.playing-card:not(:disabled):hover {
   .games-page,
   .sudoku-page,
   .truth-dare-page,
-  .snake-page {
+  .snake-page,
+  .our-future-page {
     width: calc(100% - 16px);
     margin: 12px auto 28px;
+  }
+
+  .future-form-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .future-form {
+    padding: 14px;
+  }
+
+  .future-item-heading {
+    align-items: flex-start;
+    flex-direction: column;
   }
 
   .snake-header {
