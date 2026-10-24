@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useAuth } from '../components/AuthProvider';
 import { supabase } from '../lib/supabase';
+import { playGameSound } from '../lib/gameSounds';
 
 type CardColor = 'rose' | 'moss' | 'moon' | 'ember';
 type PlayingCard = { id: string; color: CardColor | null; kind: string; value: string };
@@ -177,6 +178,7 @@ export default function HeartAndHollow() {
     const { error: startError } = await supabase.rpc('start_heart_hollow_game');
     if (startError) setError(startError.message);
     else {
+      playGameSound('start');
       setNotice('A new game has begun.');
       await loadState();
     }
@@ -186,6 +188,7 @@ export default function HeartAndHollow() {
   async function playCard(card: PlayingCard) {
     if (!supabase || !activeGame) return;
     const wild = card.kind === 'wild' || card.kind === 'wild_four';
+    playGameSound('cardPlay');
     await runAction(
       async () => await supabase!.rpc('play_heart_hollow_card', {
           p_card_id: card.id,
@@ -203,6 +206,7 @@ export default function HeartAndHollow() {
     const { data, error: drawError } = await supabase.rpc('draw_heart_hollow_cards');
     if (drawError) setError(drawError.message);
     else {
+      playGameSound('cardDraw');
       setNotice(`Drew ${data} card${data === 1 ? '' : 's'}. Turn passed.`);
       await loadState();
     }

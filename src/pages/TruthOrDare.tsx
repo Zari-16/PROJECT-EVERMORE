@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../components/AuthProvider';
 import { supabase } from '../lib/supabase';
+import { playGameSound } from '../lib/gameSounds';
 
 type TruthDareGameState = {
   players: string[];
@@ -100,6 +101,7 @@ export default function TruthOrDare() {
     setBusy(true);
     setSpinning(true);
     setError(null);
+    playGameSound('bottleSpin');
     const started = Date.now();
     const { error: spinError } = await supabase.rpc('spin_truth_dare_bottle');
     await pause(Math.max(0, 1600 - (Date.now() - started)));
@@ -115,7 +117,7 @@ export default function TruthOrDare() {
     setError(null);
     const { error: readyError } = await supabase.rpc('ready_truth_dare_prompt');
     if (readyError) setError(readyError.message);
-    else await loadState();
+    else { playGameSound('reveal'); await loadState(); }
     setBusy(false);
   }
 
@@ -125,7 +127,7 @@ export default function TruthOrDare() {
     setError(null);
     const { error: finishError } = await supabase.rpc('finish_truth_dare_turn', { p_skipped: skipped });
     if (finishError) setError(finishError.message);
-    else await loadState();
+    else { playGameSound(skipped ? 'wrong' : 'success'); await loadState(); }
     setBusy(false);
   }
 

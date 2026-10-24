@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState, type KeyboardEvent } from 'r
 import { getSudoku } from 'sudoku-gen';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../components/AuthProvider';
+import { playGameSound } from '../lib/gameSounds';
 
 type Difficulty = 'easy' | 'medium' | 'hard' | 'expert';
 type GameStatus = 'in_progress' | 'paused' | 'completed' | 'abandoned';
@@ -215,6 +216,8 @@ export default function Sudoku() {
       boardCells[selectedCell] = value;
       delete notes[key];
     }
+    const wrong = !(notesMode && value !== '-') && value !== '-' && game.solution[selectedCell] !== value;
+    playGameSound(wrong ? 'wrong' : 'place');
     await commitBoard(game, boardCells.join(''), notes);
   }
 
@@ -231,6 +234,7 @@ export default function Sudoku() {
     delete notes[String(target)];
     setSelectedCell(target);
     setShowErrors(false);
+    playGameSound('hint');
     await commitBoard(game, board.join(''), notes, game.hints_used + 1);
   }
 
@@ -247,7 +251,7 @@ export default function Sudoku() {
         score: getScore(game, elapsed),
       };
       const saved = await saveGameUpdate(game.id, patch);
-      if (saved) setNotice(`Puzzle complete! Score: ${patch.score}.`);
+      if (saved) { playGameSound('win'); setNotice(`Puzzle complete! Score: ${patch.score}.`); }
     } else if (game.board.includes('-')) setNotice('There are still empty cells.');
     else setNotice('Some entries are incorrect. Incorrect cells are marked.');
   }

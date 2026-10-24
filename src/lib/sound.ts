@@ -6,8 +6,6 @@ export const SOUND_FILES = {
   messageReceived: 'juliush-little-secrets-fairy-tale-sound-8395',
   replyPing: 'emand_edroff-fairy-dust-magical-chime-576279',
   alert: 'alert',
-  whiteboardUndo: 'emand_edroff-fairy-dust-magical-chime-576279',
-  whiteboardClear: 'juliush-little-secrets-fairy-tale-sound-8395',
 } as const;
 
 export const BACKGROUND_TRACKS = {

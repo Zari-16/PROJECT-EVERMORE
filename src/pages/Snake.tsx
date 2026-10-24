@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState, type KeyboardEvent } from 're
 import { Link } from 'react-router-dom';
 import { useAuth } from '../components/AuthProvider';
 import { supabase } from '../lib/supabase';
+import { playGameSound } from '../lib/gameSounds';
 
 type Point = { x: number; y: number };
 type Direction = 'up' | 'down' | 'left' | 'right';
@@ -89,6 +90,16 @@ export default function Snake() {
   const gameState = game?.game_state;
   const active = game?.status === 'active' && gameState?.phase === 'active';
 
+  const lastScore = useRef<number | null>(null);
+  const lastStatus = useRef<string | null>(null);
+  useEffect(() => {
+    const score = gameState?.score ?? null;
+    if (lastScore.current !== null && score !== null && score > lastScore.current) playGameSound('snakeEat');
+    if (lastStatus.current === 'active' && game?.status === 'completed') playGameSound('gameOver');
+    lastScore.current = score;
+    lastStatus.current = game?.status ?? null;
+  }, [game?.id, game?.status, gameState?.score]);
+
   useEffect(() => {
     if (!active || !supabase || ticking.current) return;
     const client = supabase;
@@ -114,7 +125,7 @@ export default function Snake() {
     setError(null);
     const { error: startError } = await supabase.rpc('start_snake_game');
     if (startError) setError(startError.message);
-    else await loadState();
+    else { playGameSound('start'); await loadState(); }
     setBusy(false);
   }
 
@@ -132,7 +143,7 @@ export default function Snake() {
     if (!supabase || !active) return;
     const { error: directionError } = await supabase.rpc('set_snake_direction', { p_direction: direction });
     if (directionError) setError(directionError.message);
-    else setError(null);
+    else { setError(null); playGameSound('snakeTurn'); }
   }
 
   function handleBoardKeyDown(event: KeyboardEvent<HTMLDivElement>) {

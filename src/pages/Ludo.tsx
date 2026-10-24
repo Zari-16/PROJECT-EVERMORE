@@ -1,6 +1,7 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useAuth } from '../components/AuthProvider';
 import { supabase } from '../lib/supabase';
+import { playGameSound } from '../lib/gameSounds';
 
 type PlayerTokens = Record<string, number[]>;
 type LudoGameState = {
@@ -138,6 +139,13 @@ export default function Ludo() {
     return () => window.clearInterval(timer);
   }, [isRolling]);
 
+  const matchStatus = state?.game?.status ?? null;
+  const previousMatchStatus = useRef<string | null>(null);
+  useEffect(() => {
+    if (previousMatchStatus.current === 'active' && matchStatus === 'completed') playGameSound('win');
+    previousMatchStatus.current = matchStatus;
+  }, [matchStatus]);
+
   const game = state?.game?.status === 'active' ? state.game : null;
   const players = game?.game_state.players ?? [];
   const currentPlayer = game?.game_state.current_player;
@@ -180,6 +188,7 @@ export default function Ludo() {
     setAnimatedRoll(1);
     setError(null);
     setNotice(null);
+    playGameSound('diceRoll');
     const { data, error: rollError } = await supabase.rpc('roll_ludo_dice');
     if (rollError) {
       setError(rollError.message);
@@ -204,6 +213,7 @@ export default function Ludo() {
     if (moveError) setError(moveError.message);
     else {
       const next = data as LudoGameState;
+      playGameSound('tokenMove');
       setNotice(next.last_action || 'Token moved.');
       await loadState();
     }

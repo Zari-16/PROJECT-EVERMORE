@@ -1,0 +1,792 @@
+diff --git a/package.json b/package.json
+index 4717aa5..dc37128 100644
+--- a/package.json
++++ b/package.json
+@@ -10,11 +10,14 @@
+     "typecheck": "tsc --noEmit"
+   },
+   "dependencies": {
++    "@fontsource-variable/nunito": "^5.3.0",
++    "@fontsource/cormorant-garamond": "^5.3.0",
+     "@supabase/supabase-js": "^2.49.1",
+     "react": "^18.3.1",
+     "react-dom": "^18.3.1",
+     "react-router-dom": "^7.18.4",
+-    "sudoku-gen": "^1.0.3"
++    "sudoku-gen": "^1.0.3",
++    "zzfx": "^1.4.0"
+   },
+   "devDependencies": {
+     "@types/react": "^18.3.12",
+diff --git a/package-lock.json b/package-lock.json
+index 896002a..9a2d432 100644
+--- a/package-lock.json
++++ b/package-lock.json
+@@ -8,11 +8,14 @@
+       "name": "project-evermore",
+       "version": "0.1.0",
+       "dependencies": {
++        "@fontsource-variable/nunito": "^5.3.0",
++        "@fontsource/cormorant-garamond": "^5.3.0",
+         "@supabase/supabase-js": "^2.49.1",
+         "react": "^18.3.1",
+         "react-dom": "^18.3.1",
+         "react-router-dom": "^7.18.4",
+-        "sudoku-gen": "^1.0.3"
++        "sudoku-gen": "^1.0.3",
++        "zzfx": "^1.4.0"
+       },
+       "devDependencies": {
+         "@types/react": "^18.3.12",
+@@ -746,6 +749,24 @@
+         "node": ">=18"
+       }
+     },
++    "node_modules/@fontsource-variable/nunito": {
++      "version": "5.3.0",
++      "resolved": "https://registry.npmjs.org/@fontsource-variable/nunito/-/nunito-5.3.0.tgz",
++      "integrity": "sha512-tw0ch7evIDSwoeUy+0XzocYHfbRWLeCRPJy22KgbrLjDLAbNw/fErBiil10Ssrs3Sjr55zaZrr36a975j8cBkQ==",
++      "license": "OFL-1.1",
++      "funding": {
++        "url": "https://github.com/sponsors/ayuhito"
++      }
++    },
++    "node_modules/@fontsource/cormorant-garamond": {
++      "version": "5.3.0",
++      "resolved": "https://registry.npmjs.org/@fontsource/cormorant-garamond/-/cormorant-garamond-5.3.0.tgz",
++      "integrity": "sha512-weuGsCirGVWBWqpt6YUp0yLThTe4G8YO45noq8wxeJCRvEpq5lFrxNMFSTxcyOyV5k5otzJ8guDzYegdYlcLMQ==",
++      "license": "OFL-1.1",
++      "funding": {
++        "url": "https://github.com/sponsors/ayuhito"
++      }
++    },
+     "node_modules/@jridgewell/gen-mapping": {
+       "version": "0.3.13",
+       "resolved": "https://registry.npmjs.org/@jridgewell/gen-mapping/-/gen-mapping-0.3.13.tgz",
+@@ -804,9 +825,6 @@
+         "x64"
+       ],
+       "dev": true,
+-      "libc": [
+-        "glibc"
+-      ],
+       "license": "MIT",
+       "optional": true,
+       "os": [
+@@ -915,9 +933,6 @@
+         "arm"
+       ],
+       "dev": true,
+-      "libc": [
+-        "glibc"
+-      ],
+       "license": "MIT",
+       "optional": true,
+       "os": [
+@@ -932,9 +947,6 @@
+         "arm"
+       ],
+       "dev": true,
+-      "libc": [
+-        "musl"
+-      ],
+       "license": "MIT",
+       "optional": true,
+       "os": [
+@@ -949,9 +961,6 @@
+         "arm64"
+       ],
+       "dev": true,
+-      "libc": [
+-        "glibc"
+-      ],
+       "license": "MIT",
+       "optional": true,
+       "os": [
+@@ -966,9 +975,6 @@
+         "arm64"
+       ],
+       "dev": true,
+-      "libc": [
+-        "musl"
+-      ],
+       "license": "MIT",
+       "optional": true,
+       "os": [
+@@ -983,9 +989,6 @@
+         "loong64"
+       ],
+       "dev": true,
+-      "libc": [
+-        "glibc"
+-      ],
+       "license": "MIT",
+       "optional": true,
+       "os": [
+@@ -1000,9 +1003,6 @@
+         "loong64"
+       ],
+       "dev": true,
+-      "libc": [
+-        "musl"
+-      ],
+       "license": "MIT",
+       "optional": true,
+       "os": [
+@@ -1017,9 +1017,6 @@
+         "ppc64"
+       ],
+       "dev": true,
+-      "libc": [
+-        "glibc"
+-      ],
+       "license": "MIT",
+       "optional": true,
+       "os": [
+@@ -1034,9 +1031,6 @@
+         "ppc64"
+       ],
+       "dev": true,
+-      "libc": [
+-        "musl"
+-      ],
+       "license": "MIT",
+       "optional": true,
+       "os": [
+@@ -1051,9 +1045,6 @@
+         "riscv64"
+       ],
+       "dev": true,
+-      "libc": [
+-        "glibc"
+-      ],
+       "license": "MIT",
+       "optional": true,
+       "os": [
+@@ -1068,9 +1059,6 @@
+         "riscv64"
+       ],
+       "dev": true,
+-      "libc": [
+-        "musl"
+-      ],
+       "license": "MIT",
+       "optional": true,
+       "os": [
+@@ -1085,9 +1073,6 @@
+         "s390x"
+       ],
+       "dev": true,
+-      "libc": [
+-        "glibc"
+-      ],
+       "license": "MIT",
+       "optional": true,
+       "os": [
+@@ -1102,9 +1087,6 @@
+         "x64"
+       ],
+       "dev": true,
+-      "libc": [
+-        "glibc"
+-      ],
+       "license": "MIT",
+       "optional": true,
+       "os": [
+@@ -1119,9 +1101,6 @@
+         "x64"
+       ],
+       "dev": true,
+-      "libc": [
+-        "musl"
+-      ],
+       "license": "MIT",
+       "optional": true,
+       "os": [
+@@ -2077,6 +2056,12 @@
+       "integrity": "sha512-a4UGQaWPH59mOXUYnAG2ewncQS4i4F43Tv3JoAM+s2VDAmS9NsK8GpDMLrCHPksFT7h3K6TOoUNn2pb7RoXx4g==",
+       "dev": true,
+       "license": "ISC"
++    },
++    "node_modules/zzfx": {
++      "version": "1.4.0",
++      "resolved": "https://registry.npmjs.org/zzfx/-/zzfx-1.4.0.tgz",
++      "integrity": "sha512-yV/7JnIBPThWh/ZLVZLlmadms5bHQQeoWKKA+DafX4554FHypsop1BQrDHhsf2xxXweUmwjWrnpiB42uBGyGlQ==",
++      "license": "MIT"
+     }
+   }
+ }
+diff --git a/src/lib/gameSounds.ts b/src/lib/gameSounds.ts
+new file mode 100644
+index 0000000..51c1e95
+--- /dev/null
++++ b/src/lib/gameSounds.ts
+@@ -0,0 +1,69 @@
++import { getSoundSettings } from './sound';
++
++// Game sound effects are synthesized with ZzFX (https://github.com/KilledByAPixel/ZzFX),
++// so there are no audio files to download or host. They follow the same mute/volume
++// settings as the rest of the app's sounds.
++// ZzFX parameter order:
++// [volume, randomness, frequency, attack, sustain, release, shape, shapeCurve, slide, deltaSlide,
++//  pitchJump, pitchJumpTime, repeatTime, noise, modulation, bitCrush, delay, sustainVolume, decay, tremolo, filter]
++type Params = Array<number | undefined>;
++
++const SOUNDS = {
++  place: [[0.6, 0, 330, 0.005, 0.02, 0.09, 0, 1.3]],
++  wrong: [[0.7, 0, 140, 0.01, 0.06, 0.22, 3, 1.4, -4]],
++  hint: [[0.6, 0, 880, 0.01, 0.04, 0.18, 0, 1.2, 0, 0, 440, 0.06]],
++  snakeEat: [[0.7, 0, 1175, 0, 0.04, 0.2, 1, 1.6, 0, 0, 587, 0.05]],
++  snakeTurn: [[0.15, 0, 260, 0, 0.005, 0.03, 0, 1]],
++  gameOver: [[0.8, 0, 392, 0.02, 0.12, 0.3, 1, 1.4, -6], [0.8, 0, 262, 0.02, 0.2, 0.5, 1, 1.4, -6]],
++  start: [[0.6, 0, 523, 0.01, 0.05, 0.15], [0.6, 0, 784, 0.01, 0.08, 0.25]],
++  tokenMove: [[0.6, 0, 440, 0.005, 0.03, 0.1, 0, 1.2, 6]],
++  cardPlay: [[0.5, 0.1, 700, 0.01, 0.03, 0.09, 4, 1.2, 0, 0, 0, 0, 0, 0.4]],
++  cardDraw: [[0.5, 0.1, 600, 0.01, 0.03, 0.08, 4, 1.2, 0, 0, 0, 0, 0, 0.4], [0.5, 0.1, 760, 0.01, 0.03, 0.08, 4, 1.2, 0, 0, 0, 0, 0, 0.4]],
++  reveal: [[0.6, 0, 659, 0.01, 0.06, 0.25, 0, 1.2], [0.6, 0, 988, 0.01, 0.06, 0.3, 0, 1.2]],
++  success: [[0.6, 0, 523, 0.01, 0.06, 0.16], [0.6, 0, 659, 0.01, 0.06, 0.16], [0.6, 0, 784, 0.01, 0.08, 0.3]],
++  win: [[0.7, 0, 523, 0.01, 0.08, 0.2], [0.7, 0, 659, 0.01, 0.08, 0.2], [0.7, 0, 784, 0.01, 0.08, 0.2], [0.7, 0, 1047, 0.01, 0.2, 0.5]],
++} satisfies Record<string, Params[]>;
++
++// Rattling dice and a slowing bottle spin are timed bursts of short ticks.
++const SEQUENCES = {
++  diceRoll: { tick: [0.35, 0.3, 240, 0, 0.005, 0.04, 4, 1, 0, 0, 0, 0, 0, 1] as Params, delays: [0, 70, 140, 215, 300, 395, 500], end: [0.6, 0, 330, 0.005, 0.03, 0.12, 0, 1.3] as Params },
++  bottleSpin: { tick: [0.3, 0.2, 420, 0, 0.004, 0.03, 4, 1, 0, 0, 0, 0, 0, 0.6] as Params, delays: [0, 60, 120, 190, 270, 360, 470, 600, 760, 950, 1180, 1420], end: [0.6, 0, 523, 0.01, 0.05, 0.2, 0, 1.2] as Params },
++};
++
++export type GameSoundName = keyof typeof SOUNDS | keyof typeof SEQUENCES;
++
++type ZzfxModule = typeof import('zzfx');
++let zzfxModule: Promise<ZzfxModule | null> | null = null;
++
++// Loaded on first use so the audio context is only created after a user action.
++const loadZzfx = () => {
++  zzfxModule ??= import('zzfx').catch(() => null);
++  return zzfxModule;
++};
++
++export function playGameSound(name: GameSoundName) {
++  const settings = getSoundSettings();
++  if (settings.muted || settings.volume === 0 || typeof AudioContext === 'undefined') return;
++
++  void loadZzfx().then((mod) => {
++    if (!mod) return;
++    const { ZZFX } = mod;
++    ZZFX.volume = 0.3 * settings.volume;
++    if (ZZFX.audioContext.state === 'suspended') void ZZFX.audioContext.resume();
++
++    const play = (params: Params) => {
++      try { ZZFX.play(...params); } catch { /* audio is best-effort */ }
++    };
++
++    if (name in SEQUENCES) {
++      const sequence = SEQUENCES[name as keyof typeof SEQUENCES];
++      sequence.delays.forEach((delay) => window.setTimeout(() => play(sequence.tick), delay));
++      window.setTimeout(() => play(sequence.end), sequence.delays[sequence.delays.length - 1] + 140);
++      return;
++    }
++
++    (SOUNDS[name as keyof typeof SOUNDS] as Params[]).forEach((params, index) => {
++      window.setTimeout(() => play(params), index * 120);
++    });
++  });
++}
+diff --git a/src/lib/sound.ts b/src/lib/sound.ts
+index 8704dc6..e8c8489 100644
+--- a/src/lib/sound.ts
++++ b/src/lib/sound.ts
+@@ -6,8 +6,6 @@
+   messageReceived: 'juliush-little-secrets-fairy-tale-sound-8395',
+   replyPing: 'emand_edroff-fairy-dust-magical-chime-576279',
+   alert: 'alert',
+-  whiteboardUndo: 'emand_edroff-fairy-dust-magical-chime-576279',
+-  whiteboardClear: 'juliush-little-secrets-fairy-tale-sound-8395',
+ } as const;
+ 
+ export const BACKGROUND_TRACKS = {
+diff --git a/src/main.tsx b/src/main.tsx
+index 964cc39..172ae88 100644
+--- a/src/main.tsx
++++ b/src/main.tsx
+@@ -4,7 +4,12 @@
+ import { ThemeProvider } from './components/ThemeProvider';
+ import { AuthProvider } from './components/AuthProvider';
+ import App from './App';
++import '@fontsource-variable/nunito';
++import '@fontsource/cormorant-garamond/500.css';
++import '@fontsource/cormorant-garamond/600.css';
++import '@fontsource/cormorant-garamond/700.css';
+ import './index.css';
++import './styles/polish.css';
+ 
+ createRoot(document.getElementById('root')!).render(
+   <React.StrictMode>
+diff --git a/src/pages/HeartAndHollow.tsx b/src/pages/HeartAndHollow.tsx
+index 1a47fc8..d55e869 100644
+--- a/src/pages/HeartAndHollow.tsx
++++ b/src/pages/HeartAndHollow.tsx
+@@ -1,6 +1,7 @@
+ import { useCallback, useEffect, useState } from 'react';
+ import { useAuth } from '../components/AuthProvider';
+ import { supabase } from '../lib/supabase';
++import { playGameSound } from '../lib/gameSounds';
+ 
+ type CardColor = 'rose' | 'moss' | 'moon' | 'ember';
+ type PlayingCard = { id: string; color: CardColor | null; kind: string; value: string };
+@@ -177,6 +178,7 @@
+     const { error: startError } = await supabase.rpc('start_heart_hollow_game');
+     if (startError) setError(startError.message);
+     else {
++      playGameSound('start');
+       setNotice('A new game has begun.');
+       await loadState();
+     }
+@@ -186,6 +188,7 @@
+   async function playCard(card: PlayingCard) {
+     if (!supabase || !activeGame) return;
+     const wild = card.kind === 'wild' || card.kind === 'wild_four';
++    playGameSound('cardPlay');
+     await runAction(
+       async () => await supabase!.rpc('play_heart_hollow_card', {
+           p_card_id: card.id,
+@@ -203,6 +206,7 @@
+     const { data, error: drawError } = await supabase.rpc('draw_heart_hollow_cards');
+     if (drawError) setError(drawError.message);
+     else {
++      playGameSound('cardDraw');
+       setNotice(`Drew ${data} card${data === 1 ? '' : 's'}. Turn passed.`);
+       await loadState();
+     }
+diff --git a/src/pages/Ludo.tsx b/src/pages/Ludo.tsx
+index 01963d5..44f124c 100644
+--- a/src/pages/Ludo.tsx
++++ b/src/pages/Ludo.tsx
+@@ -1,6 +1,7 @@
+-import { useCallback, useEffect, useState } from 'react';
++import { useCallback, useEffect, useRef, useState } from 'react';
+ import { useAuth } from '../components/AuthProvider';
+ import { supabase } from '../lib/supabase';
++import { playGameSound } from '../lib/gameSounds';
+ 
+ type PlayerTokens = Record<string, number[]>;
+ type LudoGameState = {
+@@ -137,6 +138,13 @@
+     }, 90);
+     return () => window.clearInterval(timer);
+   }, [isRolling]);
++
++  const matchStatus = state?.game?.status ?? null;
++  const previousMatchStatus = useRef<string | null>(null);
++  useEffect(() => {
++    if (previousMatchStatus.current === 'active' && matchStatus === 'completed') playGameSound('win');
++    previousMatchStatus.current = matchStatus;
++  }, [matchStatus]);
+ 
+   const game = state?.game?.status === 'active' ? state.game : null;
+   const players = game?.game_state.players ?? [];
+@@ -180,6 +188,7 @@
+     setAnimatedRoll(1);
+     setError(null);
+     setNotice(null);
++    playGameSound('diceRoll');
+     const { data, error: rollError } = await supabase.rpc('roll_ludo_dice');
+     if (rollError) {
+       setError(rollError.message);
+@@ -204,6 +213,7 @@
+     if (moveError) setError(moveError.message);
+     else {
+       const next = data as LudoGameState;
++      playGameSound('tokenMove');
+       setNotice(next.last_action || 'Token moved.');
+       await loadState();
+     }
+diff --git a/src/pages/Snake.tsx b/src/pages/Snake.tsx
+index f56d1f3..ff0d3b0 100644
+--- a/src/pages/Snake.tsx
++++ b/src/pages/Snake.tsx
+@@ -2,6 +2,7 @@
+ import { Link } from 'react-router-dom';
+ import { useAuth } from '../components/AuthProvider';
+ import { supabase } from '../lib/supabase';
++import { playGameSound } from '../lib/gameSounds';
+ 
+ type Point = { x: number; y: number };
+ type Direction = 'up' | 'down' | 'left' | 'right';
+@@ -89,6 +90,16 @@
+   const gameState = game?.game_state;
+   const active = game?.status === 'active' && gameState?.phase === 'active';
+ 
++  const lastScore = useRef<number | null>(null);
++  const lastStatus = useRef<string | null>(null);
++  useEffect(() => {
++    const score = gameState?.score ?? null;
++    if (lastScore.current !== null && score !== null && score > lastScore.current) playGameSound('snakeEat');
++    if (lastStatus.current === 'active' && game?.status === 'completed') playGameSound('gameOver');
++    lastScore.current = score;
++    lastStatus.current = game?.status ?? null;
++  }, [game?.id, game?.status, gameState?.score]);
++
+   useEffect(() => {
+     if (!active || !supabase || ticking.current) return;
+     const client = supabase;
+@@ -114,7 +125,7 @@
+     setError(null);
+     const { error: startError } = await supabase.rpc('start_snake_game');
+     if (startError) setError(startError.message);
+-    else await loadState();
++    else { playGameSound('start'); await loadState(); }
+     setBusy(false);
+   }
+ 
+@@ -132,7 +143,7 @@
+     if (!supabase || !active) return;
+     const { error: directionError } = await supabase.rpc('set_snake_direction', { p_direction: direction });
+     if (directionError) setError(directionError.message);
+-    else setError(null);
++    else { setError(null); playGameSound('snakeTurn'); }
+   }
+ 
+   function handleBoardKeyDown(event: KeyboardEvent<HTMLDivElement>) {
+diff --git a/src/pages/Sudoku.tsx b/src/pages/Sudoku.tsx
+index c15af9d..a872d83 100644
+--- a/src/pages/Sudoku.tsx
++++ b/src/pages/Sudoku.tsx
+@@ -2,6 +2,7 @@
+ import { getSudoku } from 'sudoku-gen';
+ import { supabase } from '../lib/supabase';
+ import { useAuth } from '../components/AuthProvider';
++import { playGameSound } from '../lib/gameSounds';
+ 
+ type Difficulty = 'easy' | 'medium' | 'hard' | 'expert';
+ type GameStatus = 'in_progress' | 'paused' | 'completed' | 'abandoned';
+@@ -215,6 +216,8 @@
+       boardCells[selectedCell] = value;
+       delete notes[key];
+     }
++    const wrong = !(notesMode && value !== '-') && value !== '-' && game.solution[selectedCell] !== value;
++    playGameSound(wrong ? 'wrong' : 'place');
+     await commitBoard(game, boardCells.join(''), notes);
+   }
+ 
+@@ -231,6 +234,7 @@
+     delete notes[String(target)];
+     setSelectedCell(target);
+     setShowErrors(false);
++    playGameSound('hint');
+     await commitBoard(game, board.join(''), notes, game.hints_used + 1);
+   }
+ 
+@@ -247,7 +251,7 @@
+         score: getScore(game, elapsed),
+       };
+       const saved = await saveGameUpdate(game.id, patch);
+-      if (saved) setNotice(`Puzzle complete! Score: ${patch.score}.`);
++      if (saved) { playGameSound('win'); setNotice(`Puzzle complete! Score: ${patch.score}.`); }
+     } else if (game.board.includes('-')) setNotice('There are still empty cells.');
+     else setNotice('Some entries are incorrect. Incorrect cells are marked.');
+   }
+diff --git a/src/pages/TruthOrDare.tsx b/src/pages/TruthOrDare.tsx
+index 68361bd..6794137 100644
+--- a/src/pages/TruthOrDare.tsx
++++ b/src/pages/TruthOrDare.tsx
+@@ -2,6 +2,7 @@
+ import { Link } from 'react-router-dom';
+ import { useAuth } from '../components/AuthProvider';
+ import { supabase } from '../lib/supabase';
++import { playGameSound } from '../lib/gameSounds';
+ 
+ type TruthDareGameState = {
+   players: string[];
+@@ -100,6 +101,7 @@
+     setBusy(true);
+     setSpinning(true);
+     setError(null);
++    playGameSound('bottleSpin');
+     const started = Date.now();
+     const { error: spinError } = await supabase.rpc('spin_truth_dare_bottle');
+     await pause(Math.max(0, 1600 - (Date.now() - started)));
+@@ -115,7 +117,7 @@
+     setError(null);
+     const { error: readyError } = await supabase.rpc('ready_truth_dare_prompt');
+     if (readyError) setError(readyError.message);
+-    else await loadState();
++    else { playGameSound('reveal'); await loadState(); }
+     setBusy(false);
+   }
+ 
+@@ -125,7 +127,7 @@
+     setError(null);
+     const { error: finishError } = await supabase.rpc('finish_truth_dare_turn', { p_skipped: skipped });
+     if (finishError) setError(finishError.message);
+-    else await loadState();
++    else { playGameSound(skipped ? 'wrong' : 'success'); await loadState(); }
+     setBusy(false);
+   }
+ 
+diff --git a/src/pages/Whiteboard.tsx b/src/pages/Whiteboard.tsx
+index a79024b..71d1730 100644
+--- a/src/pages/Whiteboard.tsx
++++ b/src/pages/Whiteboard.tsx
+@@ -2,7 +2,6 @@
+ import { Link } from 'react-router-dom';
+ import { useAuth } from '../components/AuthProvider';
+ import { supabase } from '../lib/supabase';
+-import { playSound } from '../lib/sound';
+ 
+ type Point = [number, number];
+ type StrokeOperation = { type: 'stroke' | 'erase'; points: Point[]; color: string; width: number };
+@@ -304,7 +303,6 @@
+   async function handleClear() {
+     if (!window.confirm('Clear the shared whiteboard for both of you? You can undo your clear afterwards.')) return;
+     await persistOperation({ type: 'clear' });
+-    void playSound('whiteboardClear');
+   }
+ 
+   async function handleUndo() {
+@@ -329,7 +327,6 @@
+         ? current
+         : orderOperations([...current, { ...stored, op } as StoredOperation]));
+       setNotice('Undid your last action.');
+-      void playSound('whiteboardUndo');
+     }
+     setSaving(false);
+   }
+diff --git a/src/styles/polish.css b/src/styles/polish.css
+new file mode 100644
+index 0000000..a657591
+--- /dev/null
++++ b/src/styles/polish.css
+@@ -0,0 +1,219 @@
++/* Design polish layer: loaded after index.css so it refines the existing styles.
++   Everything is driven by the theme tokens, so all six themes (light and dark) pick it up. */
++
++:root {
++  --font-body: 'Nunito Variable', 'Trebuchet MS', 'Segoe UI', sans-serif;
++  --font-display: 'Cormorant Garamond', Georgia, 'Palatino Linotype', serif;
++  --radius: 14px;
++  --radius-sm: 10px;
++  --shadow-soft: 0 1px 2px rgba(28, 20, 38, 0.05), 0 10px 28px rgba(28, 20, 38, 0.08);
++  --shadow-lift: 0 2px 4px rgba(28, 20, 38, 0.06), 0 18px 40px rgba(28, 20, 38, 0.14);
++  --ease: cubic-bezier(0.22, 0.8, 0.3, 1);
++}
++
++html {
++  background-image:
++    radial-gradient(900px 520px at 8% -8%, color-mix(in srgb, var(--primary) 22%, transparent), transparent 70%),
++    radial-gradient(800px 480px at 100% 0%, color-mix(in srgb, var(--accent) 16%, transparent), transparent 70%),
++    radial-gradient(900px 600px at 50% 110%, color-mix(in srgb, var(--secondary) 18%, transparent), transparent 70%);
++  background-attachment: fixed;
++}
++
++body {
++  font-family: var(--font-body);
++  font-size: 16px;
++  line-height: 1.55;
++  -webkit-font-smoothing: antialiased;
++}
++
++h1, h2, h3 {
++  font-family: var(--font-display);
++  font-weight: 600;
++  letter-spacing: 0.005em;
++  line-height: 1.15;
++}
++
++h1 { font-size: clamp(2rem, 4.6vw, 3rem); }
++
++::selection {
++  background: color-mix(in srgb, var(--accent) 35%, transparent);
++}
++
++/* Header */
++.site-header {
++  background: color-mix(in srgb, var(--bg) 78%, transparent);
++  backdrop-filter: blur(18px) saturate(1.3);
++  box-shadow: 0 1px 0 var(--border), 0 12px 32px rgba(28, 20, 38, 0.06);
++}
++
++.site-brand-copy strong {
++  font-family: var(--font-display);
++  font-size: 1.45rem;
++  font-weight: 700;
++  letter-spacing: 0.01em;
++}
++
++.site-brand-mark {
++  background: linear-gradient(145deg, color-mix(in srgb, var(--primary) 70%, var(--surface)), var(--surface));
++  box-shadow: 0 4px 14px var(--magic), inset 0 0 0 3px color-mix(in srgb, var(--bg) 60%, transparent);
++}
++
++.site-nav-link {
++  padding: 8px 14px;
++  border-radius: 999px;
++  font-weight: 600;
++  transition: background-color 200ms var(--ease), color 200ms var(--ease), transform 200ms var(--ease);
++}
++
++.site-nav-link:hover {
++  background: color-mix(in srgb, var(--surface) 70%, var(--primary));
++  transform: translateY(-1px);
++}
++
++.site-nav-link.is-active {
++  border-color: color-mix(in srgb, var(--accent) 35%, transparent);
++  background: color-mix(in srgb, var(--accent) 14%, var(--surface));
++  box-shadow: none;
++}
++
++/* Surfaces */
++:is(
++  .card, .auth-form-panel, .home-section, .home-unpaired, .chat-panel, .daily-question,
++  .answer-form, .answers-section, .calendar-month, .calendar-selected-day, .calendar-form-section,
++  .calendar-list, .memory-form-section, .memories-library, .memory-envelope,
++  .focus-session-section, .task-form-section, .shared-tasks-list, .future-section,
++  .card-game-panel, .card-game-history, .sound-panel, .notification-panel
++) {
++  border-radius: var(--radius);
++  border-color: color-mix(in srgb, var(--accent) 16%, var(--border));
++  background: color-mix(in srgb, var(--surface) 88%, transparent);
++  box-shadow: var(--shadow-soft);
++  backdrop-filter: blur(8px);
++}
++
++:is(.home-section, .calendar-list, .memory-envelope, .game-library-item) {
++  transition: transform 260ms var(--ease), box-shadow 260ms var(--ease), border-color 260ms var(--ease);
++}
++
++:is(.home-section, .calendar-list, .memory-envelope, .game-library-item):hover {
++  border-color: color-mix(in srgb, var(--accent) 40%, var(--border));
++  box-shadow: var(--shadow-lift), 0 0 28px var(--magic);
++  transform: translateY(-2px);
++}
++
++.home-welcome {
++  position: relative;
++  overflow: hidden;
++  padding: clamp(24px, 4vw, 40px);
++  border: 1px solid color-mix(in srgb, var(--accent) 22%, var(--border));
++  border-left-width: 1px;
++  border-radius: calc(var(--radius) + 6px);
++  background:
++    radial-gradient(520px 220px at 90% -20%, color-mix(in srgb, var(--primary) 30%, transparent), transparent 70%),
++    linear-gradient(120deg, var(--surface), color-mix(in srgb, var(--surface) 72%, var(--primary)));
++  box-shadow: var(--shadow-soft), 0 0 40px var(--magic);
++}
++
++.home-welcome h1 {
++  font-size: clamp(2.2rem, 5vw, 3.4rem);
++}
++
++.home-eyebrow {
++  letter-spacing: 0.16em;
++  font-size: 0.74rem;
++}
++
++/* Controls */
++button {
++  min-height: 40px;
++  padding: 8px 16px;
++  border-radius: var(--radius-sm);
++  font-weight: 600;
++  transition: transform 180ms var(--ease), box-shadow 180ms var(--ease), background-color 180ms var(--ease), border-color 180ms var(--ease);
++}
++
++button:not(:disabled):hover {
++  box-shadow: 0 6px 16px var(--magic);
++  transform: translateY(-1px);
++}
++
++button:not(:disabled):active {
++  box-shadow: none;
++  transform: translateY(1px) scale(0.98);
++}
++
++button[type="submit"]:not(.site-signout) {
++  border-color: transparent;
++  background: linear-gradient(135deg, var(--primary), var(--accent));
++  color: #fff;
++  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
++  box-shadow: 0 6px 18px color-mix(in srgb, var(--accent) 35%, transparent);
++}
++
++button[type="submit"]:not(:disabled):not(.site-signout):hover {
++  background: linear-gradient(135deg, color-mix(in srgb, var(--primary) 88%, #fff), color-mix(in srgb, var(--accent) 88%, #fff));
++}
++
++input:not([type="color"]):not([type="range"]),
++select,
++textarea {
++  border-radius: var(--radius-sm);
++  background: color-mix(in srgb, var(--bg) 70%, var(--surface));
++  transition: border-color 180ms var(--ease), box-shadow 180ms var(--ease);
++}
++
++input:not([type="color"]):not([type="range"]):focus,
++select:focus,
++textarea:focus {
++  border-color: var(--accent);
++  box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 22%, transparent);
++  outline: none;
++}
++
++:focus-visible {
++  outline: 3px solid color-mix(in srgb, var(--accent) 45%, transparent);
++  outline-offset: 2px;
++}
++
++input[type="range"] { accent-color: var(--accent); }
++
++/* Game boards and canvases */
++:is(.sudoku-board, .snake-board, .ludo-board-wrap, .whiteboard-canvas, .home-board-preview) {
++  border-radius: var(--radius);
++  box-shadow: var(--shadow-soft), 0 0 30px var(--magic);
++}
++
++/* Chat */
++.chat-message {
++  border-radius: 16px;
++  box-shadow: 0 2px 8px rgba(28, 20, 38, 0.06);
++}
++
++/* Scrollbars */
++* {
++  scrollbar-width: thin;
++  scrollbar-color: color-mix(in srgb, var(--accent) 40%, transparent) transparent;
++}
++
++/* Page transitions */
++@keyframes realm-arrive {
++  from { opacity: 0; transform: translateY(12px) scale(0.995); }
++  to { opacity: 1; transform: none; }
++}
++
++.app-route-content > * {
++  animation-duration: 420ms;
++  animation-timing-function: var(--ease);
++}
++
++@media (max-width: 720px) {
++  .site-nav-link { padding: 7px 11px; font-size: 0.86rem; }
++  .home-welcome { padding: 22px 18px; }
++}
++
++@media (prefers-reduced-motion: reduce) {
++  *, *::before, *::after {
++    animation-duration: 1ms !important;
++    transition-duration: 1ms !important;
++  }
++}
+diff --git a/src/zzfx.d.ts b/src/zzfx.d.ts
+new file mode 100644
+index 0000000..df1da4d
+--- /dev/null
++++ b/src/zzfx.d.ts
+@@ -0,0 +1,8 @@
++declare module 'zzfx' {
++  export const ZZFX: {
++    volume: number;
++    audioContext: AudioContext;
++    play: (...parameters: Array<number | undefined>) => AudioBufferSourceNode;
++  };
++  export function zzfx(...parameters: Array<number | undefined>): AudioBufferSourceNode;
++}

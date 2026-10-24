@@ -2,7 +2,6 @@ import { useCallback, useEffect, useRef, useState, type PointerEvent } from 'rea
 import { Link } from 'react-router-dom';
 import { useAuth } from '../components/AuthProvider';
 import { supabase } from '../lib/supabase';
-import { playSound } from '../lib/sound';
 
 type Point = [number, number];
 type StrokeOperation = { type: 'stroke' | 'erase'; points: Point[]; color: string; width: number };
@@ -304,7 +303,6 @@ export default function Whiteboard() {
   async function handleClear() {
     if (!window.confirm('Clear the shared whiteboard for both of you? You can undo your clear afterwards.')) return;
     await persistOperation({ type: 'clear' });
-    void playSound('whiteboardClear');
   }
 
   async function handleUndo() {
@@ -329,7 +327,6 @@ export default function Whiteboard() {
         ? current
         : orderOperations([...current, { ...stored, op } as StoredOperation]));
       setNotice('Undid your last action.');
-      void playSound('whiteboardUndo');
     }
     setSaving(false);
   }
