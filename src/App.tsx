@@ -16,6 +16,7 @@ import FantasyAtmosphere from './components/FantasyAtmosphere';
 import SoundControl from './components/SoundControl';
 import BackgroundMusic from './components/BackgroundMusic';
 import Games from './pages/Games';
+import ButtonSounds from './components/ButtonSounds';
 
 const Sudoku = lazy(() => import('./pages/Sudoku'));
 const Chat = lazy(() => import('./pages/Chat'));
@@ -41,6 +42,7 @@ export default function App() {
   return (
     <div className="app-shell">
       <FantasyAtmosphere />
+      <ButtonSounds />
       {session && <BackgroundMusic />}
       <header className="site-header">
         <Link className="site-brand" to="/" aria-label="Project Evermore home">

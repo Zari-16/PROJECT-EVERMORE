@@ -9,6 +9,7 @@ import { getSoundSettings } from './sound';
 type Params = Array<number | undefined>;
 
 const SOUNDS = {
+  click: [[0.35, 0, 880, 0, 0.004, 0.03, 0, 1.2]],
   place: [[0.6, 0, 330, 0.005, 0.02, 0.09, 0, 1.3]],
   wrong: [[0.7, 0, 140, 0.01, 0.06, 0.22, 3, 1.4, -4]],
   hint: [[0.6, 0, 880, 0.01, 0.04, 0.18, 0, 1.2, 0, 0, 440, 0.06]],
